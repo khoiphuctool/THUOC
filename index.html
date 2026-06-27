@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ Thống Tạo Thước Vạn Năng 1:1 - Thước Của Chần</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            background: #f4f6f9;
+            overflow-x: hidden;
+        }
+        
+        #control-panel {
+            background: #fff;
+            padding: 15px;
+            border-bottom: 3px solid #3f51b5;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 10;
+        }
+        h3 {
+            margin: 0 0 5px 0;
+            color: #1a237e;
+            font-size: 18px;
+            text-align: center;
+        }
+        .notice-text {
+            margin: 0 0 12px 0; 
+            color: #d32f2f; 
+            font-weight: bold; 
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .panel-sections {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .section-group {
+            border: 1px solid #c5cae9;
+            border-radius: 8px;
+            padding: 10px;
+            background: #fcfcfd;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #3f51b5;
+            font-weight: bold;
+            width: 100%;
+            margin-bottom: 4px;
+            border-bottom: 1px dashed #c5cae9;
+            padding-bottom: 2px;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-weight: bold;
+            background: #fff;
+            padding: 4px 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .counter-controls {
+            display: flex;
+            align-items: center;
+            margin-top: 4px;
+            gap: 4px;
+        }
+        .counter-controls input, .counter-controls select {
+            width: 80px;
+            padding: 4px;
+            text-align: center;
+            font-size: 13px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .btn-step {
+            padding: 2px 8px;
+            background: #e0e0e0;
+            border: 1px solid #b0bec5;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px;
+            user-select: none;
+        }
+        .btn-step:hover { background: #cfd8dc; }
+
+        .action-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn-print {
+            padding: 10px 24px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            transition: all 0.2s;
+        }
+        .btn-print:hover { background: #1976D2; transform: translateY(-1px); }
+
+        .status-msg {
+            font-size: 13px;
+            color: #e65100;
+            font-weight: bold;
+            margin-top: 6px;
+            text-align: center;
+            min-height: 18px;
+        }
+
+        #main-layout {
+            display: flex;
+            justify-content: center; 
+            align-items: flex-start;
+            width: 100%;
+            padding: 15px;
+            box-sizing: border-box;
+            gap: 15px;
+            overflow-x: auto;
+            overflow-y: auto;
+            flex-wrap: nowrap;
+        }
+
+        #print-area-wrapper {
+            flex: 1 1 0;
+            min-width: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow: visible;
+        }
+
+        #print-area {
+            position: relative;
+            width: 297mm;
+            height: 210mm;
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            overflow: hidden;
+            flex-shrink: 0;
+            transform-origin: top center;
+        }
+
+        .side-panel {
+            background: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            width: 460px; 
+            flex-shrink: 0;
+            box-sizing: border-box;
+            min-height: 500px;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .side-panel h4 {
+            margin-top: 0; margin-bottom: 8px;
+            color: #333; border-bottom: 2px solid #eee;
+            padding-bottom: 6px; font-size: 13px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .ruler-list {
+            display: flex; flex-direction: column; gap: 4px;
+            overflow-y: auto; margin-bottom: 10px;
+            border: 1px solid #ddd; padding: 5px; border-radius: 4px; background: #fafafa;
+            flex-grow: 1;
+        }
+        .ruler-item {
+            padding: 6px; background: #f5f5f5; border: 1px solid #ddd;
+            border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; text-align: center;
+        }
+        .ruler-item.active { background: #3f51b5; color: white; border-color: #283593; }
+
+        #note-area {
+            width: 100%; flex-grow: 1; padding: 8px; box-sizing: border-box;
+            border: 1px solid #ccc; border-radius: 4px; resize: none;
+            font-size: 12px; overflow-y: auto; background: #fffde7;
+        }
+
+        .history-table-wrapper { flex-grow: 1; overflow-y: auto; border: 1px solid #eee; background: #fafafa; }
+        .history-table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; }
+        .history-table th, .history-table td { padding: 6px 4px; border-bottom: 1px solid #eee; }
+        .history-table th { background: #e8eaf6; position: sticky; top: 0; color: #3f51b5; z-index: 1; }
+        .btn-clear-history { background: #ff5252; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 11px; }
+        
+        #ruler-svg { width: 100%; height: 100%; display: block; }
+        #print-params {
+            display: none; position: absolute; top: 4mm; right: 4mm;
+            font-size: 8pt; color: #555; background: rgba(255,255,255,0.9);
+            padding: 2px 6px; border: 1px solid #bbb; z-index: 20;
+        }
+        .guide-line { display: inline; }
+        .move-mode { cursor: move; outline: 2px dashed #e91e63; }
+
+        @media print {
+            #control-panel, .side-panel { display: none !important; }
+            #main-layout { padding: 0 !important; margin: 0 !important; display: block !important; }
+            body, html { background: #fff; overflow: hidden !important; }
+            #print-area-wrapper { height: auto !important; }
+            #print-area {
+                margin: 0 !important; box-shadow: none !important;
+                width: 297mm !important; height: 210mm !important;
+                transform: none !important;
+                page-break-inside: avoid; page-break-after: avoid; overflow: hidden !important;
+            }
+            #print-params { display: block !important; }
+            .guide-line { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="control-panel">
+        <h3>📐 HỆ THỐNG TẠO THƯỚC CHUẨN ĐỐI CHIẾU 1:1 - THƯỚC CỦA CHẦN</h3>
+        <p class="notice-text">
+            💡 LƯU Ý KHI IN: Chọn A4 Ngang | Tỷ lệ (Scale) = 100% | Lề (Margins) = None. | <b>Chuột trái để DỜI, Chuột phải để XOAY thước chuẩn tâm</b>
+        </p>
+        
+        <div class="panel-sections">
+            <!-- NHÓM 1: Thông số thước -->
+            <div class="section-group" style="background: #e8f5e9;">
+                <div class="section-title">📦 Thông số thước</div>
+                <div class="input-field" style="background: #c8e6c9;">
+                    <label>Số lượng cần in</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" onclick="adjustTotalCount(-1)">-</button>
+                        <input type="number" id="ruler-count" min="1" max="10" step="1" value="2" oninput="handleTotalCountInput(this.value)">
+                        <button class="btn-step" onclick="adjustTotalCount(1)">+</button>
+                    </div>
+                </div>
+                <div class="input-field">
+                    <label>Loại thước</label>
+                    <select id="ruler-type" onchange="switchRulerType()" style="width: 120px;">
+                        <option value="long">Thước dài</option>
+                        <option value="protractor">Thước đo độ</option>
+                        <option value="eke45">Thước Êke 45°</option>
+                        <option value="eke60">Thước Êke 30°-60°</option>
+                    </select>
+                </div>
+                <div class="input-field" style="background: #fff3e0;">
+                    <label id="label-start">Số bắt đầu (cm)</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" id="btn-start-minus" onclick="adjustParam('startCm', -1)">-</button>
+                        <input type="number" id="start-val" min="0" max="100" step="1" value="0" oninput="updateCurrentRulerParam('startCm', parseInt(this.value)||0)">
+                        <button class="btn-step" id="btn-start-plus" onclick="adjustParam('startCm', 1)">+</button>
+                    </div>
+                </div>
+                <div class="input-field" style="background: #fff3e0;">
+                    <label id="label-len">Chiều dài thước (cm)</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" onclick="adjustParam('maxCm', -1)">-</button>
+                        <input type="number" id="max-len" min="5" max="35" step="1" value="25" oninput="updateCurrentRulerParam('maxCm', parseInt(this.value)||5)">
+                        <button class="btn-step" onclick="adjustParam('maxCm', 1)">+</button>
+                    </div>
+                </div>
+                <div class="input-field" style="background: #fce4ec;">
+                    <label>Cách nhau (mm)</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" onclick="adjustGapMm(-0.5)">-</button>
+                        <input type="number" id="gap-mm-input" min="0" max="50" step="0.1" value="10" oninput="updateGapMm(this.value)">
+                        <button class="btn-step" onclick="adjustGapMm(0.5)">+</button>
+                    </div>
+                </div>
+                <div class="input-field" style="background: #e0f7fa;">
+                    <label>Chạy nối tiếp số</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" onclick="toggleChainMode()">Bật/Tắt</button>
+                        <input type="checkbox" id="chain-mode" onchange="handleChainModeChange(this.checked)" style="width: 16px; height: 16px;">
+                    </div>
+                </div>
+                <div class="input-field" style="background: #e1f5fe; border: 1px solid #4fc3f7;">
+                    <label style="color:#0288d1;">Tự chéo góc (Khi dài)</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" onclick="toggleAutoTilt()">Bật/Tắt</button>
+                        <input type="checkbox" id="auto-tilt-mode" onchange="handleAutoTiltChange(this.checked)" style="width: 16px; height: 16px;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- NHÓM 2: Vạch & Số -->
+            <div class="section-group" style="background: #f3e5f5;">
+                <div class="section-title">📐 Vạch & Số</div>
+                <div class="input-field" id="field-dual" style="background: #e8eaf6;">
+                    <label>Vạch hai chiều</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" onclick="toggleDualEdge()">Bật/Tắt</button>
+                        <input type="checkbox" id="dual-edge" onchange="updateCurrentRulerParam('dualEdge', this.checked)" style="width: 16px; height: 16px;" checked>
+                    </div>
+                </div>
+                <div class="input-field" id="field-dual-text" style="background: #ede7f6;">
+                    <label>Số hai chiều</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" onclick="toggleDualEdgeText()">Bật/Tắt</button>
+                        <input type="checkbox" id="dual-edge-text" onchange="handleDualEdgeTextChange(this.checked)" style="width: 16px; height: 16px;" checked>
+                    </div>
+                </div>
+                <div class="input-field" id="field-tick-scale" style="background: #e8f5e9;">
+                    <label>chiều cao vạch cm (%)</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" onclick="adjustGlobalParam('tickScalePct', -5)">-</button>
+                        <input type="number" id="tick-scale-pct" min="10" max="100" step="5" value="25" oninput="updateGlobalParam('tickScalePct', parseInt(this.value))">
+                        <button class="btn-step" onclick="adjustGlobalParam('tickScalePct', 5)">+</button>
+                    </div>
+                </div>
+                <div class="input-field" id="field-text-offset" style="background: #fce4ec;">
+                    <label>Cách số ↕ vạch (mm)</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" onclick="adjustGlobalParam('textOffsetMm', -0.5)">-</button>
+                        <input type="number" id="text-offset-mm" min="0" max="20" step="0.5" value="0.8" oninput="updateGlobalParam('textOffsetMm', parseFloat(this.value))">
+                        <button class="btn-step" onclick="adjustGlobalParam('textOffsetMm', 0.5)">+</button>
+                    </div>
+                </div>
+                <div class="input-field" id="field-padding" style="background: #fff3e0;">
+                    <label id="label-padding">Lề 2 đầu thước (mm)</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" onclick="adjustGlobalParam('rulerPaddingMm', -0.5)">-</button>
+                        <input type="number" id="ruler-padding-mm" min="0" max="20" step="0.5" value="2" oninput="updateGlobalParam('rulerPaddingMm', parseFloat(this.value))">
+                        <button class="btn-step" onclick="adjustGlobalParam('rulerPaddingMm', 0.5)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NHÓM 3: Kiểu dáng -->
+            <div class="section-group" style="background: #e1f5fe;">
+                <div class="section-title">🎨 Kiểu dáng</div>
+                <div class="input-field">
+                    <label>Góc xoay thước (°)</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" onclick="adjustParam('rotateDeg', -5)">-</button>
+                        <input type="number" id="rotate-deg" min="-360" max="360" step="1" value="0" oninput="updateCurrentRulerParam('rotateDeg', parseFloat(this.value)||0)">
+                        <button class="btn-step" onclick="adjustParam('rotateDeg', 5)">+</button>
+                    </div>
+                </div>
+                <div class="input-field" id="field-height">
+                    <label>Chiều rộng thân (mm)</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" onclick="adjustParam('boxHeightMm', -5)">-</button>
+                        <input type="number" id="box-height" min="15" max="80" step="1" value="25" oninput="updateCurrentRulerParam('boxHeightMm', parseInt(this.value)||15)">
+                        <button class="btn-step" onclick="adjustParam('boxHeightMm', 5)">+</button>
+                    </div>
+                </div>
+                <div class="input-field" id="field-style">
+                    <label>Kiểu dáng vạch</label>
+                    <select id="ruler-style" onchange="updateCurrentRulerParam('rulerStyle', this.value)" style="width: 100px;">
+                        <option value="classic">Cổ điển</option>
+                        <option value="bold">Đậm nét</option>
+                        <option value="fine" selected>Mảnh nét</option>
+                        <option value="dashed">Gạch nối</option>
+                        <option value="industrial">Công nghiệp</option>
+                        <option value="precision">Chính xác</option>
+                        <option value="architect">Kiến trúc</option>
+                    </select>
+                </div>
+                <div class="input-field">
+                    <label>Tên cá nhân</label>
+                    <input type="text" id="custom-text" placeholder="Thước của Chần" oninput="updateCurrentRulerParam('customText', this.value)" style="width: 100px; margin-top:4px; padding:3px; font-size:12px; border:1px solid #ccc; border-radius:4px; text-align:center;" value="ok chan">
+                </div>
+                <div class="input-field" style="background: #fff9c4; border: 1px solid #f9a825;">
+                    <label style="color:#e65100;">🔄 Lật ngược số</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" onclick="toggleFlipNumbers()">Bật/Tắt</button>
+                        <input type="checkbox" id="flip-numbers" onchange="updateCurrentRulerParam('flipNumbers', this.checked)" style="width: 16px; height: 16px;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- NHÓM 4: Cấu hình in -->
+            <div class="section-group" style="background: #fff8e1;">
+                <div class="section-title">🖨️ Cấu hình in</div>
+                <div class="input-field">
+                    <label>Chọn máy in</label>
+                    <select id="printer-select" onchange="handlePrinterChange()" style="width: 130px; margin-top:4px;">
+                        <option value="Máy in mặc định">Máy in mặc định</option>
+                        <option value="Canon LBP2900">Canon LBP2900</option>
+                        <option value="Brother HL-L2321D">Brother HL-L2321D</option>
+                        <option value="HP LaserJet P1102">HP LaserJet P1102</option>
+                        <option value="Epson L3110">Epson L3110</option>
+                        <option value="+ add_new">+ Thêm máy in khác...</option>
+                    </select>
+                </div>
+                <div class="input-field" style="background: #ffe082;">
+                    <label>Bù trừ máy in (%)</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" onclick="adjustScale(-0.05)">-</button>
+                        <input type="number" id="scale" min="90" max="115" step="0.01" value="100.00" oninput="updateRulers()">
+                        <button class="btn-step" onclick="adjustScale(0.05)">+</button>
+                    </div>
+                </div>
+                <div class="input-field">
+                    <label>Độ dày vạch (mm)</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" onclick="adjustThickness(-0.01)">-</button>
+                        <input type="number" id="thickness" min="0.05" max="1.0" step="0.01" value="0.19" oninput="updateRulers()">
+                        <button class="btn-step" onclick="adjustThickness(0.01)">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="action-group">
+            <button class="btn-print" style="background: #d32f2f;" onclick="triggerPrintWithHistory()">🖨️ BẤM ĐỂ IN NGAY</button>
+            <button class="btn-print" id="btn-move-toggle" style="background: #9c27b0;" onclick="toggleMoveMode()">🎯 Chỉnh vị trí / Xoay thước</button>
+            <button class="btn-print" style="background: #e91e63;" onclick="compactRulersToCenter()">🎯 Xếp gọn về tâm giấy</button>
+            <button class="btn-print" style="background: #4caf50;" onclick="resetRulerPosition()">↩ Khởi tạo lại vị trí</button>
+            <button class="btn-print" style="background: #ff9800;" onclick="saveSettings()">💾 LƯU CÀI ĐẶT</button>
+            <button class="btn-print" style="background: #78909c;" onclick="resetSettings()">🔄 VỀ MẶC ĐỊNH</button>
+        </div>
+        <div id="status-text" class="status-msg"></div>
+    </div>
+
+    <div id="main-layout">
+        <div class="side-panel">
+            <h4>🛠️ Chọn riêng từng cây thước</h4>
+            <div class="ruler-list" id="ruler-list-container"></div>
+            
+            <h4 style="margin-top: 10px;">📝 Ghi chú cá nhân <span style="font-size:11px; font-weight:normal; color:#888;">(Tự lưu)</span></h4>
+            <textarea id="note-area" placeholder="Nhập ghi chú tại đây..." oninput="autoSaveNote()"></textarea>
+        </div>
+        
+        <div id="print-area-wrapper">
+        <div id="print-area">
+            <svg id="ruler-svg" viewBox="0 0 297 210" xmlns="http://www.w3.org/2000/svg">
+                <line x1="0" y1="0" x2="297" y2="210" stroke="#eee" stroke-width="0.3" stroke-dasharray="2,2" class="guide-line"/>
+                <line x1="297" y1="0" x2="0" y2="210" stroke="#eee" stroke-width="0.3" stroke-dasharray="2,2" class="guide-line"/>
+                <circle cx="148.5" cy="105" r="1.5" fill="none" stroke="#ff5252" stroke-width="0.3" class="guide-line"/>
+                <g id="ruler-group"></g>
+            </svg>
+            <div id="print-params"></div>
+        </div>
+        </div>
+        <div class="side-panel">
+            <h4>⏳ Lịch sử in ấn <button class="btn-clear-history" onclick="clearPrintHistory()">Xóa</button></h4>
+            <div class="history-table-wrapper">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>T.Gian</th>
+                            <th>Thông số</th>
+                            <th>SL</th>
+                            <th>%</th>
+                            <th>Máy In</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-log-body">
+                        <tr>
+                            <td colspan="5" style="text-align:center; color:#999; padding: 15px;">Chưa có lịch sử.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const startValInput = document.getElementById('start-val');
+        const maxLenInput = document.getElementById('max-len');
+        const rotateDegInput = document.getElementById('rotate-deg');
+        const boxHeightInput = document.getElementById('box-height');
+        const rulerCountInput = document.getElementById('ruler-count');
+        const scaleInput = document.getElementById('scale');
+        const thicknessInput = document.getElementById('thickness');
+        const rulerTypeInput = document.getElementById('ruler-type');
+        const rulerStyleInput = document.getElementById('ruler-style');
+        const dualEdgeInput = document.getElementById('dual-edge');
+        const dualEdgeTextInput = document.getElementById('dual-edge-text');
+        const customTextInput = document.getElementById('custom-text');
+        const printerSelect = document.getElementById('printer-select');
+        const statusText = document.getElementById('status-text');
+        const rulerGroup = document.getElementById('ruler-group');
+        const noteArea = document.getElementById('note-area');
+        const historyLogBody = document.getElementById('history-log-body');
+        const rulerListContainer = document.getElementById('ruler-list-container');
+        const chainModeInput = document.getElementById('chain-mode');
+        const gapMmInput = document.getElementById('gap-mm-input');
+        const autoTiltModeInput = document.getElementById('auto-tilt-mode');
+        const flipNumbersInput = document.getElementById('flip-numbers');
+
+        let rulersData = []; 
+        let selectedRulerIndex = -1; 
+        let isChainMode = false; 
+        let currentGapMm = 10; 
+        let isAutoTilt = false; 
+
+        let moveMode = false;
+        let draggingLeft = false;
+        let draggingRight = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let initialAngle = 0;
+        let rotateCenter = { x: 0, y: 0 };
+
+        // Tham số global (áp dụng cho tất cả thước)
+        let textOffsetMm = 0;     // khoảng cách số cách đầu vạch (mm)
+        let tickScalePct = 40;    // % chiều cao thân thước cho vạch cm dài nhất
+        let dualEdgeText = false; // bật/tắt số ở cạnh trên khi dualEdge
+        let rulerPaddingMm = 3;   // khoảng cách từ mép thước đến vạch đầu/cuối (mm)
+
+        const pageW = 297; 
+        const pageH = 210;
+
+        function initRulersData() {
+            const count = parseInt(rulerCountInput.value) || 1;
+            const currentType = rulerTypeInput.value;
+
+            if (rulersData.length === 0) {
+                rulersData.push({
+                    startCm: parseInt(startValInput.value) || 0,
+                    maxCm: parseInt(maxLenInput.value) || (currentType === 'long' ? 25 : (currentType === 'eke60' ? 14 : 12)),
+                    rotateDeg: parseFloat(rotateDegInput.value) || 0,
+                    boxHeightMm: parseInt(boxHeightInput.value) || 35,
+                    rulerStyle: rulerStyleInput.value || 'classic',
+                    dualEdge: dualEdgeInput.checked,
+                    customText: customTextInput.value || '',
+                    flipNumbers: flipNumbersInput.checked,
+                    offsetX: 0, 
+                    offsetY: 0
+                });
+            }
+
+            const templateRuler = rulersData[0];
+
+            while (rulersData.length < count) {
+                const newIdx = rulersData.length; // index của thước sắp thêm
+                rulersData.push({
+                    startCm: templateRuler.startCm,
+                    maxCm: templateRuler.maxCm,
+                    rotateDeg: templateRuler.rotateDeg,
+                    boxHeightMm: templateRuler.boxHeightMm,
+                    rulerStyle: templateRuler.rulerStyle,
+                    dualEdge: templateRuler.dualEdge,
+                    customText: templateRuler.customText,
+                    flipNumbers: templateRuler.flipNumbers || false,
+                    offsetX: templateRuler.offsetX, 
+                    offsetY: templateRuler.offsetY + (newIdx * (templateRuler.boxHeightMm + currentGapMm)) 
+                });
+            }
+
+            if (rulersData.length > count) {
+                rulersData = rulersData.slice(0, count);
+            }
+
+            if (selectedRulerIndex >= rulersData.length) {
+                selectedRulerIndex = -1;
+            }
+
+            applyChainLogic(); 
+            renderRulerListUI();
+        }
+
+        function applyChainLogic() {
+            if (!isChainMode || rulersData.length === 0) return;
+            for (let i = 1; i < rulersData.length; i++) {
+                rulersData[i].startCm = rulersData[i-1].startCm + rulersData[i-1].maxCm;
+            }
+        }
+
+        function toggleChainMode() {
+            chainModeInput.checked = !chainModeInput.checked;
+            handleChainModeChange(chainModeInput.checked);
+        }
+
+        function handleChainModeChange(checked) {
+            isChainMode = checked;
+            updateStartCmUIState();
+            initRulersData();
+            updateRulers();
+        }
+
+        function toggleAutoTilt() {
+            autoTiltModeInput.checked = !autoTiltModeInput.checked;
+            handleAutoTiltChange(autoTiltModeInput.checked);
+        }
+
+        function handleAutoTiltChange(checked) {
+            isAutoTilt = checked;
+            if (!isAutoTilt) {
+                rulersData.forEach(r => { r.rotateDeg = 0; });
+            }
+            applyAutoTilt();
+            statusText.innerText = isAutoTilt
+                ? "🔄 Đã BẬT tự động xoay chéo — thước sẽ tự xoay theo góc trang giấy."
+                : "➖ Đã TẮT tự động chéo góc. Thước về 0°.";
+            syncInputsFromSelected();
+            updateRulers();
+        }
+
+        function applyAutoTilt() {
+            if (!isAutoTilt || rulersData.length === 0) {
+                return;
+            }
+            // Tính chiều dài tổng của cụm thước (mm)
+            const rulerType = rulerTypeInput.value || 'long';
+            let maxW = 0;
+            rulersData.forEach(r => {
+                let w = rulerType === 'long' ? (r.maxCm * 10 + rulerPaddingMm * 2) : (r.maxCm * 10);
+                if (w > maxW) maxW = w;
+            });
+            // Nếu cụm thước dài hơn trang thì xoay theo đường chéo trang A4 landscape
+            const angle = maxW > pageW ? Math.atan2(pageH, pageW) * (180 / Math.PI) : 0;
+            rulersData.forEach(r => { r.rotateDeg = angle; });
+        }
+
+        function updateStartCmUIState() {
+            if (isChainMode && selectedRulerIndex > 0) {
+                startValInput.disabled = true;
+                document.getElementById('btn-start-minus').disabled = true;
+                document.getElementById('btn-start-plus').disabled = true;
+            } else {
+                startValInput.disabled = false;
+                document.getElementById('btn-start-minus').disabled = false;
+                document.getElementById('btn-start-plus').disabled = false;
+            }
+        }
+
+        // ĐÃ SỬA: Thay đổi bước tăng giảm và kiểm tra giá trị bằng số thực Float
+        function adjustGapMm(step) {
+            let v = parseFloat(gapMmInput.value) || 0;
+            v += step;
+            updateGapMm(v);
+        }
+
+        // ĐÃ SỬA: Dùng parseFloat thay vì parseInt để lưu trữ được số thập phân
+        function updateGapMm(value) {
+            let v = parseFloat(value);
+            if (isNaN(v) || v < 0) v = 0;
+            gapMmInput.value = v; 
+            currentGapMm = v;
+            if (!moveMode) compactRulersToCenter();
+            else updateRulers();
+        }
+
+        function renderRulerListUI() {
+            let html = `<div class="ruler-item ${selectedRulerIndex === -1 ? 'active' : ''}" onclick="selectRuler(-1)">✨ Chỉnh chung tất cả thước</div>`;
+            rulersData.forEach((r, idx) => {
+                let suffix = isChainMode ? ` (${r.startCm}cm)` : '';
+                html += `<div class="ruler-item ${selectedRulerIndex === idx ? 'active' : ''}" onclick="selectRuler(${idx})">📐 Thước số ${idx + 1}${suffix}</div>`;
+            });
+            rulerListContainer.innerHTML = html;
+            syncInputsFromSelected();
+        }
+
+        function selectRuler(idx) {
+            selectedRulerIndex = idx;
+            updateStartCmUIState();
+            renderRulerListUI();
+        }
+
+        function syncInputsFromSelected() {
+            if (rulersData.length === 0) return;
+            const target = selectedRulerIndex === -1 ? rulersData[0] : rulersData[selectedRulerIndex];
+            
+            startValInput.value = target.startCm;
+            maxLenInput.value = target.maxCm;
+            const deg = parseFloat(target.rotateDeg) || 0;
+            rotateDegInput.value = deg.toFixed(1);
+            boxHeightInput.value = target.boxHeightMm;
+            rulerStyleInput.value = target.rulerStyle;
+            dualEdgeInput.checked = target.dualEdge;
+            customTextInput.value = target.customText;
+            flipNumbersInput.checked = target.flipNumbers || false;
+        }
+
+        function updateCurrentRulerParam(key, value) {
+            if (selectedRulerIndex === -1) {
+                rulersData.forEach((r, idx) => { 
+                    if (key === 'startCm' && isChainMode && idx > 0) return;
+                    r[key] = value; 
+                });
+            } else {
+                if (key === 'startCm' && isChainMode && selectedRulerIndex > 0) return;
+                rulersData[selectedRulerIndex][key] = value;
+            }
+            
+            applyChainLogic(); 
+            updateRulers();
+            if (isChainMode) renderRulerListUI(); 
+        }
+
+        function adjustParam(key, step) {
+            if (key === 'startCm' && isChainMode && selectedRulerIndex > 0) return;
+
+            let currentVal = 0;
+            if (selectedRulerIndex === -1) {
+                currentVal = rulersData[0] ? rulersData[0][key] : 0;
+            } else {
+                currentVal = rulersData[selectedRulerIndex][key];
+            }
+
+            if (typeof currentVal === 'string') return; 
+            let newVal = currentVal + step;
+
+            if (key === 'startCm' && newVal < 0) newVal = 0;
+            if (key === 'maxCm' && newVal < 5) newVal = 5;
+            if (key === 'boxHeightMm') {
+                const minH = (rulerTypeInput.value === 'eke45' || rulerTypeInput.value === 'eke60') ? 5 : 10;
+                if (newVal < minH) newVal = minH;
+            }
+
+            updateCurrentRulerParam(key, newVal);
+            syncInputsFromSelected();
+        }
+
+        function adjustTotalCount(step) {
+            let val = parseInt(rulerCountInput.value) || 1;
+            val += step;
+            handleTotalCountInput(val);
+        }
+
+        function handleTotalCountInput(value) {
+            let val = parseInt(value) || 1;
+            if (val < 1) val = 1;
+            if (val > 10) val = 10; 
+            rulerCountInput.value = val;
+            initRulersData();
+            updateRulers();
+        }
+
+        function adjustScale(step) {
+            let val = parseFloat(scaleInput.value) || 100;
+            val += step;
+            if (val < 90) val = 90;
+            if (val > 115) val = 115;
+            scaleInput.value = val.toFixed(2);
+            updateRulers();
+        }
+
+        function adjustThickness(step) {
+            let val = parseFloat(thicknessInput.value) || 0.15;
+            val += step;
+            if (val < 0.05) val = 0.05;
+            thicknessInput.value = val.toFixed(2);
+            updateRulers();
+        }
+
+        function adjustGlobalParam(key, step) {
+            if (key === 'textOffsetMm') {
+                textOffsetMm = Math.max(0, Math.min(20, parseFloat(document.getElementById('text-offset-mm').value) + step));
+                document.getElementById('text-offset-mm').value = textOffsetMm;
+            } else if (key === 'tickScalePct') {
+                tickScalePct = Math.max(10, Math.min(100, parseInt(document.getElementById('tick-scale-pct').value) + step));
+                document.getElementById('tick-scale-pct').value = tickScalePct;
+            } else if (key === 'rulerPaddingMm') {
+                rulerPaddingMm = Math.max(0, Math.min(20, parseFloat(document.getElementById('ruler-padding-mm').value) + step));
+                document.getElementById('ruler-padding-mm').value = rulerPaddingMm;
+            }
+            updateRulers();
+        }
+
+        function updateGlobalParam(key, value) {
+            if (key === 'textOffsetMm') { textOffsetMm = isNaN(value) ? 0 : Math.max(0, Math.min(20, value)); }
+            else if (key === 'tickScalePct') { tickScalePct = isNaN(value) ? 40 : Math.max(10, Math.min(100, value)); }
+            else if (key === 'rulerPaddingMm') { rulerPaddingMm = isNaN(value) ? 3 : Math.max(0, Math.min(20, value)); }
+            updateRulers();
+        }
+
+        function toggleDualEdge() {
+            dualEdgeInput.checked = !dualEdgeInput.checked;
+            updateCurrentRulerParam('dualEdge', dualEdgeInput.checked);
+        }
+
+        function toggleFlipNumbers() {
+            flipNumbersInput.checked = !flipNumbersInput.checked;
+            updateCurrentRulerParam('flipNumbers', flipNumbersInput.checked);
+        }
+
+        function toggleDualEdgeText() {
+            dualEdgeTextInput.checked = !dualEdgeTextInput.checked;
+            handleDualEdgeTextChange(dualEdgeTextInput.checked);
+        }
+
+        function handleDualEdgeTextChange(checked) {
+            dualEdgeText = checked;
+            updateRulers();
+        }
+
+        function updateFieldsVisibility() {
+            const type = rulerTypeInput.value;
+            const paddingLabel = document.getElementById('label-padding');
+            if (type === 'long') {
+                document.getElementById('field-height').style.display = 'flex';
+                document.getElementById('field-dual').style.display = 'flex';
+                document.getElementById('field-dual-text').style.display = 'flex';
+                document.getElementById('label-len').innerText = "Chiều dài thước (cm)";
+                if (paddingLabel) paddingLabel.innerText = "Lề 2 đầu thước (mm)";
+            } else {
+                document.getElementById('field-dual').style.display = 'none';
+                document.getElementById('field-dual-text').style.display = 'none';
+                if (type === 'protractor') {
+                    document.getElementById('field-height').style.display = 'none';
+                    document.getElementById('label-len').innerText = "Đường kính thước (cm)";
+                    if (paddingLabel) paddingLabel.innerText = "Lề 2 đầu thước (mm)";
+                } else if (type === 'eke45') {
+                    document.getElementById('field-height').style.display = 'flex';
+                    document.getElementById('label-len').innerText = "Cạnh góc vuông (cm)";
+                    if (paddingLabel) paddingLabel.innerText = "Lề cạnh góc vuông (mm)";
+                } else if (type === 'eke60') {
+                    document.getElementById('field-height').style.display = 'flex';
+                    document.getElementById('label-len').innerText = "Cạnh vuông dài (cm)";
+                    if (paddingLabel) paddingLabel.innerText = "Lề cạnh góc vuông (mm)";
+                }
+            }
+        }
+
+        function switchRulerType() {
+            const type = rulerTypeInput.value;
+            rulersData.forEach(r => {
+                r.rotateDeg = 0; // reset góc khi chuyển loại
+                if (type === 'long') {
+                    r.maxCm = 25;
+                    r.boxHeightMm = 25;
+                } else if (type === 'protractor') {
+                    r.maxCm = 12;
+                } else if (type === 'eke45') {
+                    r.maxCm = 15;
+                    r.boxHeightMm = 20;
+                } else if (type === 'eke60') {
+                    r.maxCm = 15;
+                    r.boxHeightMm = 20;
+                }
+            });
+
+            // Đồng bộ boxHeightInput UI
+            if (rulersData.length > 0) boxHeightInput.value = rulersData[0].boxHeightMm;
+
+            // Đặt mặc định toàn cục phù hợp từng loại thước
+            if (type === 'long') {
+                tickScalePct = 25; rulerPaddingMm = 2; textOffsetMm = 0.8;
+                document.getElementById('text-offset-mm').value = 0.8;
+            } else if (type === 'protractor') {
+                tickScalePct = 12; rulerPaddingMm = 0; textOffsetMm = 0;
+                document.getElementById('text-offset-mm').value = 0;
+            } else if (type === 'eke45' || type === 'eke60') {
+                tickScalePct = 40; rulerPaddingMm = 3; textOffsetMm = 0;
+                document.getElementById('text-offset-mm').value = 0;
+            }
+            document.getElementById('tick-scale-pct').value = tickScalePct;
+            document.getElementById('ruler-padding-mm').value = rulerPaddingMm;
+
+            updateFieldsVisibility();
+            initRulersData();
+            compactRulersToCenter();
+        }
+
+        function getStyleParams(rulerStyle) {
+            let params = { color: '#000000', bg: '#ffffff', stroke: '1.2', dash: 'solid' };
+            switch(rulerStyle) {
+                case 'bold': params.stroke = '2.0'; break;
+                case 'fine': params.stroke = '0.6'; break;
+                case 'dashed': params.stroke = '1.0'; params.dash = 'dashed'; break;
+                case 'industrial': params.stroke = '1.8'; params.bg = '#f0f0f0'; break;
+                case 'precision': params.stroke = '0.8'; break;
+                case 'architect': params.stroke = '1.4'; params.bg = '#fafafa'; break;
+            }
+            return params;
+        }
+
+        function getRulerCenterSVGCoords(idx) {
+            const rIdx = idx === -1 ? 0 : idx;
+            const r = rulersData[rIdx];
+            if (!r) return { x: pageW / 2, y: pageH / 2 };
+
+            const rulerType = rulerTypeInput.value || 'long';
+            const pad = rulerPaddingMm;
+            let rW = 0, rH = 0;
+            if (rulerType === 'long')       { rW = (r.maxCm * 10) + pad * 2; rH = r.boxHeightMm; }
+            else if (rulerType === 'protractor') { rW = r.maxCm * 10; rH = r.maxCm * 10 / 2; }
+            else if (rulerType === 'eke45') { rW = r.maxCm * 10; rH = r.maxCm * 10; }
+            else if (rulerType === 'eke60') { rW = r.maxCm * 10 / Math.sqrt(3); rH = r.maxCm * 10; }
+
+            const printerFactor = (parseFloat(scaleInput.value) || 100) / 100;
+            // rulerGroup đã được translate(pageW/2, pageH/2) scale(printerFactor)
+            // toạ độ SVG tuyệt đối = pageW/2 + (offsetX + rW/2) * printerFactor
+            return {
+                x: pageW / 2 + (r.offsetX + rW / 2) * printerFactor,
+                y: pageH / 2 + (r.offsetY + rH / 2) * printerFactor
+            };
+        }
+
+        function compactRulersToCenter() {
+            const rulerType = rulerTypeInput.value || 'long';
+            const count = rulersData.length;
+            if (count === 0) return;
+
+            let heights = [];
+            rulersData.forEach((r) => {
+                let h = 0;
+                if (rulerType === 'long')            h = r.boxHeightMm;
+                else if (rulerType === 'protractor') h = r.maxCm * 10 / 2;
+                else if (rulerType === 'eke45')      h = r.maxCm * 10;
+                else if (rulerType === 'eke60')      h = r.maxCm * 10;
+                heights.push(h);
+            });
+
+            const totalH = heights.reduce((a, b) => a + b, 0) + (count - 1) * currentGapMm;
+            let startY = -totalH / 2;
+
+            rulersData.forEach((r, idx) => {
+                let rW = 0;
+                if (rulerType === 'long')            rW = r.maxCm * 10 + rulerPaddingMm * 2;
+                else if (rulerType === 'protractor') rW = r.maxCm * 10;
+                else if (rulerType === 'eke45')      rW = r.maxCm * 10;
+                else if (rulerType === 'eke60')      rW = r.maxCm * 10 / Math.sqrt(3);
+
+                // offsetX: căn giữa theo chiều ngang
+                r.offsetX = -rW / 2;
+                // offsetY: đặt top bounding box tại startY
+                r.offsetY = startY;
+                startY += heights[idx] + currentGapMm;
+            });
+
+            statusText.innerText = `🎯 Đã xếp gọn ${count} thước sát nhau ${currentGapMm}mm chuẩn chính giữa tâm trang giấy!`;
+            updateRulers();
+        }
+
+        function updateRulers() {
+            const rulerType = rulerTypeInput.value || 'long';
+            const scalePercent = parseFloat(scaleInput.value) || 100;
+            const lineThickness = parseFloat(thicknessInput.value) || 0.15;
+            const count = rulersData.length;
+
+            if (moveMode) {
+                statusText.innerText = '🎯 CHẾ ĐỘ DỜI/XOAY: Chuột TRÁI để kéo dời vị trí thước | Chuột PHẢI để xoay tròn thước.';
+            }
+
+            // Áp dụng autoTilt nếu đang bật (tự cập nhật khi maxCm thay đổi)
+            applyAutoTilt();
+
+            const printerFactor = scalePercent / 100;
+
+            rulerGroup.setAttribute('transform', `translate(${pageW / 2}, ${pageH / 2}) scale(${printerFactor})`);
+
+            let svgContent = '';
+            rulersData.forEach((r, idx) => {
+                let rW = 0; let rH = 0;
+                if (rulerType === 'long')       { rW = (r.maxCm * 10) + rulerPaddingMm * 2; rH = r.boxHeightMm; }
+                else if (rulerType === 'protractor') { rW = r.maxCm * 10; rH = r.maxCm * 10 / 2; }
+                else if (rulerType === 'eke45') { rW = r.maxCm * 10; rH = r.maxCm * 10; }
+                else if (rulerType === 'eke60') { rW = r.maxCm * 10 / Math.sqrt(3); rH = r.maxCm * 10; }
+
+                let centerRulerX = r.offsetX + (rW / 2);
+                let centerRulerY = r.offsetY + (rH / 2);
+
+                svgContent += `<g transform="rotate(${r.rotateDeg || 0}, ${centerRulerX}, ${centerRulerY}) translate(${r.offsetX}, ${r.offsetY})">`;
+                const sParams = getStyleParams(r.rulerStyle);
+                
+                if (rulerType === 'long') {
+                    svgContent += drawLongRulerMarkup(r, sParams, lineThickness);
+                } else if (rulerType === 'protractor') {
+                    svgContent += drawProtractorMarkup(r, sParams, lineThickness);
+                } else if (rulerType === 'eke45') {
+                    svgContent += drawEke45Markup(r, sParams, lineThickness);
+                } else if (rulerType === 'eke60') {
+                    svgContent += drawEke60Markup(r, sParams, lineThickness);
+                }
+                svgContent += `</g>`;
+            });
+
+            const svg = document.getElementById('ruler-svg');
+            if (moveMode) svg.classList.add('move-mode');
+            else svg.classList.remove('move-mode');
+
+            rulerGroup.innerHTML = svgContent;
+            document.getElementById('print-params').innerHTML = `Loại: ${rulerTypeInput.options[rulerTypeInput.selectedIndex].text} | SL: ${count} chiếc | Tỉ lệ in: ${scalePercent}%`;
+        }
+
+        function drawLongRulerMarkup(r, sParams, lineThickness) {
+            const totalMm = r.maxCm * 10;
+            const paddingEachSide = rulerPaddingMm;
+            const totalBoxWidthMm = totalMm + (paddingEachSide * 2);
+            const flip = r.flipNumbers || false;
+
+            let html = '';
+            html += `<rect x="0" y="0" width="${totalBoxWidthMm}" height="${r.boxHeightMm}" fill="${sParams.bg}" stroke="${sParams.color}" stroke-width="${sParams.stroke}" />`;
+
+            const tickCmLen = Math.min(r.boxHeightMm * (tickScalePct / 100), r.boxHeightMm * 0.9);
+
+            for (let i = 0; i <= totalMm; i++) {
+                const xT = paddingEachSide + i;
+                let isMain = i % 10 === 0;
+                let isHalf = i % 5 === 0;
+                let len = isMain ? tickCmLen : (isHalf ? tickCmLen * 0.65 : tickCmLen * 0.4);
+                let strokeDash = sParams.dash === 'dashed' ? (isMain ? 'stroke-dasharray="2,1"' : 'stroke-dasharray="0.5,0.5"') : '';
+
+                // Vạch cạnh DƯỚI — số giảm từ maxCm về 0
+                html += `<line x1="${xT}" y1="${r.boxHeightMm}" x2="${xT}" y2="${r.boxHeightMm - len}" stroke="${sParams.color}" stroke-width="${lineThickness}" ${strokeDash} />`;
+                if (isMain) {
+                    let textNum = r.startCm + r.maxCm - (i / 10);
+                    const yBot = r.boxHeightMm - len - textOffsetMm;
+                    const textTransform = flip ? ` transform="rotate(180,${xT},${yBot - 2.1})"` : '';
+                    html += `<text x="${xT}" y="${yBot}" font-family="Arial" font-size="4.2" font-weight="bold" text-anchor="middle" dominant-baseline="auto" fill="${sParams.color}"${textTransform}>${textNum}</text>`;
+                }
+
+                if (r.dualEdge) {
+                    // Vạch cạnh TRÊN — số từ 0 tăng dần, lật 180°
+                    html += `<line x1="${xT}" y1="0" x2="${xT}" y2="${len}" stroke="${sParams.color}" stroke-width="${lineThickness}" ${strokeDash} />`;
+                    if (isMain && dualEdgeText) {
+                        let textNum = r.startCm + (i / 10);
+                        const tyCenter = len + textOffsetMm + 2.1;
+                        // Cạnh trên luôn rotate 180 để đọc từ trên xuống; flip thêm thì xoay thêm 180 = về 0
+                        const rot = flip ? `` : `rotate(180,${xT},${tyCenter})`;
+                        const rotAttr = rot ? ` transform="${rot}"` : '';
+                        html += `<text x="${xT}" y="${tyCenter}" font-family="Arial" font-size="4.2" font-weight="bold" text-anchor="middle" dominant-baseline="middle" fill="${sParams.color}"${rotAttr}>${textNum}</text>`;
+                    }
+                }
+            }
+            if (r.customText) {
+                html += `<text x="${totalBoxWidthMm / 2}" y="${r.boxHeightMm / 2}" font-family="Arial" font-size="${Math.min(r.boxHeightMm * 0.25, 8)}" text-anchor="middle" dominant-baseline="middle" fill="${sParams.color}" opacity="0.65">${r.customText}</text>`;
+            }
+            return html;
+        }
+
+        function drawProtractorMarkup(r, sParams, lineThickness) {
+            const R = (r.maxCm * 10 / 2);
+            const cx = R; const cy = R;
+            let html = `<path d="M ${cx - R} ${cy} A ${R} ${R} 0 0 1 ${cx + R} ${cy} Z" fill="${sParams.bg}" stroke="${sParams.color}" stroke-width="${sParams.stroke}"/>`;
+            html += `<line x1="${cx - R}" y1="${cy}" x2="${cx + R}" y2="${cy}" stroke="${sParams.color}" stroke-width="${sParams.stroke}"/>`;
+            html += `<circle cx="${cx}" cy="${cy}" r="1.2" fill="none" stroke="${sParams.color}" stroke-width="0.4"/>`;
+
+            // tickScalePct áp dụng cho vạch 10° (tính theo % bán kính)
+            const tickMain  = R * (tickScalePct / 100);
+            const tickHalf  = tickMain * 0.7;
+            const tickSmall = tickMain * 0.45;
+
+            for (let a = 0; a <= 180; a++) {
+                const rad = (a * Math.PI) / 180;
+                let len = (a % 10 === 0) ? tickMain : (a % 5 === 0 ? tickHalf : tickSmall);
+
+                const x1 = cx - Math.cos(rad) * R;       const y1 = cy - Math.sin(rad) * R;
+                const x2 = cx - Math.cos(rad) * (R - len); const y2 = cy - Math.sin(rad) * (R - len);
+                html += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${sParams.color}" stroke-width="${lineThickness}"/>`;
+
+                if (a % 10 === 0) {
+                    const rTextOuter = Math.max(1, R - len - textOffsetMm - 2.4);
+                    const txOuter = cx - Math.cos(rad) * rTextOuter;
+                    const tyOuter = cy - Math.sin(rad) * rTextOuter;
+                    html += `<text x="${txOuter}" y="${tyOuter + 0.8}" font-family="Arial" font-size="2.4" font-weight="bold" text-anchor="middle" fill="${sParams.color}" transform="rotate(${90 - a}, ${txOuter}, ${tyOuter})">${a}</text>`;
+
+                    const rTextInner = Math.max(0.5, R - len - textOffsetMm - 7.0);
+                    const txInner = cx - Math.cos(rad) * rTextInner;
+                    const tyInner = cy - Math.sin(rad) * rTextInner;
+                    html += `<text x="${txInner}" y="${tyInner + 0.8}" font-family="Arial" font-size="2.2" text-anchor="middle" fill="#555" transform="rotate(${90 - a}, ${txInner}, ${tyInner})">${180 - a}</text>`;
+                }
+            }
+            if (r.customText) {
+                html += `<text x="${cx}" y="${cy - R / 3}" font-family="Arial" font-size="4.5" text-anchor="middle" fill="${sParams.color}" opacity="0.65">${r.customText}</text>`;
+            }
+            return html;
+        }
+
+        function drawEke45Markup(r, sParams, lineThickness) {
+            const side = r.maxCm * 10;
+            const pad  = rulerPaddingMm;
+            const t    = Math.max(1, r.boxHeightMm);
+
+            const xV = 0,    yV = side;
+            const xA = side, yA = side;
+            const xB = 0,    yB = 0;
+
+            // Tam giác trong đồng dạng dùng incircle scale
+            // Inradius eke45: r_in = (side + side - side*√2)/2 = side*(2-√2)/2
+            const r_in45 = side * (2 - Math.SQRT2) / 2;
+            const k45    = Math.max(0, 1 - t / r_in45);
+            const icx45  = r_in45;          // tâm nội tiếp x
+            const icy45  = side - r_in45;   // tâm nội tiếp y
+            const ixV = icx45 + (xV - icx45) * k45, iyV = icy45 + (yV - icy45) * k45;
+            const ixA = icx45 + (xA - icx45) * k45, iyA = icy45 + (yA - icy45) * k45;
+            const ixB = icx45 + (xB - icx45) * k45, iyB = icy45 + (yB - icy45) * k45;
+
+            const tickMainC = t * (tickScalePct / 100);
+            const tickHalf  = tickMainC * 0.65;
+            const tickSmall = tickMainC * 0.4;
+
+            let html = `<polygon points="${xV},${yV} ${xA},${yA} ${xB},${yB}" fill="${sParams.bg}" stroke="${sParams.color}" stroke-width="${sParams.stroke}"/>`;
+            if (k45 > 0.05) {
+                html += `<polygon points="${ixV},${iyV} ${ixA},${iyA} ${ixB},${iyB}" fill="#ffffff" stroke="${sParams.color}" stroke-width="0.5"/>`;
+            }
+            const iPadInt = Math.round(pad); // chuẩn hoá về nguyên để tránh float miss
+            for (let i = iPadInt; i <= side; i++) {
+                const x = xV + i; const mm = i - iPadInt;
+                const isMain = mm % 10 === 0; const isHalf = mm % 5 === 0;
+                const len = isMain ? tickMainC : (isHalf ? tickHalf : tickSmall);
+                html += `<line x1="${x}" y1="${yV}" x2="${x}" y2="${yV - len}" stroke="${sParams.color}" stroke-width="${lineThickness}"/>`;
+                if (isMain) {
+                    html += `<text x="${x}" y="${yV - len - textOffsetMm}" font-family="Arial" font-size="3.2" font-weight="bold" text-anchor="middle" dominant-baseline="auto" fill="${sParams.color}">${r.startCm + mm/10}</text>`;
+                }
+            }
+            for (let i = iPadInt; i <= side; i++) {
+                const y = yV - i; const mm = i - iPadInt;
+                const isMain = mm % 10 === 0; const isHalf = mm % 5 === 0;
+                const len = isMain ? tickMainC : (isHalf ? tickHalf : tickSmall);
+                html += `<line x1="${xV}" y1="${y}" x2="${xV + len}" y2="${y}" stroke="${sParams.color}" stroke-width="${lineThickness}"/>`;
+                if (isMain) {
+                    const yOff = (mm === 0) ? y - 2 : y + 1.2;
+                    html += `<text x="${xV + len + textOffsetMm}" y="${yOff}" font-family="Arial" font-size="3.2" font-weight="bold" text-anchor="start" dominant-baseline="middle" fill="${sParams.color}">${r.startCm + mm/10}</text>`;
+                }
+            }
+            if (r.customText) {
+                html += `<text x="${t + side/4}" y="${yV - t - side/4}" font-family="Arial" font-size="4.5" text-anchor="start" fill="${sParams.color}" opacity="0.6">${r.customText}</text>`;
+            }
+            return html;
+        }
+
+        function drawEke60Markup(r, sParams, lineThickness) {
+            const sideLong  = r.maxCm * 10;
+            const sideShort = sideLong / Math.sqrt(3);
+            const pad = rulerPaddingMm;
+            const t   = Math.max(1, r.boxHeightMm);
+
+            const xV = 0,         yV = sideLong;   // góc vuông
+            const xA = sideShort, yA = sideLong;   // góc 60°
+            const xB = 0,         yB = 0;          // góc 30°
+
+            // --- Tam giác trong đồng dạng, co vào t mm đều từ cả 3 cạnh ---
+            // Dùng incircle: tâm I = (r_in, sideLong - r_in), scale k = 1 - t/r_in
+            const hyp   = Math.sqrt(sideShort * sideShort + sideLong * sideLong);
+            const r_in  = (sideShort + sideLong - hyp) / 2;
+            const k     = Math.max(0, 1 - t / r_in);
+            const icx   = r_in;             // tâm nội tiếp x
+            const icy   = sideLong - r_in;  // tâm nội tiếp y
+            // Scale từng đỉnh ngoài về tâm nội tiếp
+            const ixV = icx + (xV - icx) * k, iyV = icy + (yV - icy) * k;
+            const ixA = icx + (xA - icx) * k, iyA = icy + (yA - icy) * k;
+            const ixB = icx + (xB - icx) * k, iyB = icy + (yB - icy) * k;
+
+            const tickMainC = t * (tickScalePct / 100);
+            const tickHalf  = tickMainC * 0.65;
+            const tickSmall = tickMainC * 0.4;
+
+            let html = `<polygon points="${xV},${yV} ${xA},${yA} ${xB},${yB}" fill="${sParams.bg}" stroke="${sParams.color}" stroke-width="${sParams.stroke}"/>`;
+            if (k > 0.05) {
+                html += `<polygon points="${ixV},${iyV} ${ixA},${iyA} ${ixB},${iyB}" fill="#ffffff" stroke="${sParams.color}" stroke-width="0.5"/>`;
+            }
+
+            const iPadInt60 = Math.round(pad);
+            // Cạnh dài (đứng) — vạch từ yV-pad trở lên
+            for (let i = iPadInt60; i <= sideLong; i++) {
+                const y = yV - i; const mm = i - iPadInt60;
+                const isMain = mm % 10 === 0; const isHalf = mm % 5 === 0;
+                const len = isMain ? tickMainC : (isHalf ? tickHalf : tickSmall);
+                html += `<line x1="${xV}" y1="${y}" x2="${xV + len}" y2="${y}" stroke="${sParams.color}" stroke-width="${lineThickness}"/>`;
+                if (isMain) {
+                    const yOff = (mm === 0) ? y - 2 : y + 1.2;
+                    html += `<text x="${xV + len + textOffsetMm}" y="${yOff}" font-family="Arial" font-size="3.2" font-weight="bold" text-anchor="start" dominant-baseline="middle" fill="${sParams.color}">${r.startCm + mm/10}</text>`;
+                }
+            }
+            // Cạnh ngắn (ngang) — vạch từ xV+pad sang phải
+            for (let i = iPadInt60; i <= sideShort; i++) {
+                const x = xV + i; const mm = i - iPadInt60;
+                const isMain = mm % 10 === 0; const isHalf = mm % 5 === 0;
+                const len = isMain ? tickMainC : (isHalf ? tickHalf : tickSmall);
+                html += `<line x1="${x}" y1="${yV}" x2="${x}" y2="${yV - len}" stroke="${sParams.color}" stroke-width="${lineThickness}"/>`;
+                if (isMain) {
+                    html += `<text x="${x}" y="${yV - len - textOffsetMm}" font-family="Arial" font-size="3.2" font-weight="bold" text-anchor="middle" dominant-baseline="auto" fill="${sParams.color}">${r.startCm + mm/10}</text>`;
+                }
+            }
+            if (r.customText) {
+                html += `<text x="${t + sideShort/4}" y="${yV - t - sideLong/4}" font-family="Arial" font-size="4.5" text-anchor="start" fill="${sParams.color}" opacity="0.6">${r.customText}</text>`;
+            }
+            return html;
+        }
+
+        function handlePrinterChange() {
+            if (printerSelect.value === '+ add_new') {
+                let name = prompt("Nhập tên máy in của bạn:");
+                if (name && name.trim() !== "") {
+                    name = name.trim();
+                    const opt = document.createElement("option");
+                    opt.value = name; opt.text = name;
+                    printerSelect.add(opt, printerSelect.options[printerSelect.options.length - 1]);
+                    printerSelect.value = name;
+                    saveCustomPrintersList();
+                } else {
+                    printerSelect.selectedIndex = 0;
+                }
+            }
+        }
+
+        function saveCustomPrintersList() {
+            let list = [];
+            for (let i = 5; i < printerSelect.options.length - 1; i++) {
+                list.push(printerSelect.options[i].value);
+            }
+            localStorage.setItem('userPrinterOptions', JSON.stringify(list));
+        }
+
+        function loadCustomPrintersList() {
+            const saved = localStorage.getItem('userPrinterOptions');
+            if (saved) {
+                const list = JSON.parse(saved);
+                list.forEach(name => {
+                    const opt = document.createElement("option");
+                    opt.value = name; opt.text = name;
+                    printerSelect.add(opt, printerSelect.options[printerSelect.options.length - 1]);
+                });
+            }
+        }
+
+        function saveSettings() {
+            const settings = {
+                rulerType: rulerTypeInput.value,
+                rulerCount: rulerCountInput.value,
+                scale: scaleInput.value, 
+                thickness: thicknessInput.value, 
+                printer: printerSelect.value,
+                isChainMode: isChainMode,
+                currentGapMm: currentGapMm,
+                isAutoTilt: isAutoTilt,
+                textOffsetMm: textOffsetMm,
+                tickScalePct: tickScalePct,
+                dualEdgeText: dualEdgeText,
+                rulerPaddingMm: rulerPaddingMm,
+                rulersData: rulersData
+            };
+            localStorage.setItem('rulerSettingsSystemV10', JSON.stringify(settings));
+            statusText.innerText = '💾 Đã lưu cấu hình, khoảng cách lẻ và tùy chọn tự động chéo góc!';
+            setTimeout(() => { if(!moveMode) statusText.innerText = ''; }, 2000);
+        }
+
+        function loadSettings() {
+            loadCustomPrintersList(); 
+
+            const saved = localStorage.getItem('rulerSettingsSystemV10');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                rulerTypeInput.value = settings.rulerType || 'long';
+                rulerCountInput.value = settings.rulerCount || 2;
+                scaleInput.value = settings.scale || 100.00;
+                thicknessInput.value = settings.thickness || 0.15;
+                isChainMode = settings.isChainMode || false;
+                chainModeInput.checked = isChainMode;
+                currentGapMm = settings.currentGapMm !== undefined ? parseFloat(settings.currentGapMm) : 10;
+                gapMmInput.value = currentGapMm;
+                isAutoTilt = settings.isAutoTilt || false;
+                autoTiltModeInput.checked = isAutoTilt;
+                textOffsetMm = settings.textOffsetMm !== undefined ? parseFloat(settings.textOffsetMm) : 0;
+                document.getElementById('text-offset-mm').value = textOffsetMm;
+                tickScalePct = settings.tickScalePct !== undefined ? parseInt(settings.tickScalePct) : 40;
+                document.getElementById('tick-scale-pct').value = tickScalePct;
+                dualEdgeText = settings.dualEdgeText !== undefined ? settings.dualEdgeText : false;
+                dualEdgeTextInput.checked = dualEdgeText;
+                rulerPaddingMm = settings.rulerPaddingMm !== undefined ? parseFloat(settings.rulerPaddingMm) : 3;
+                document.getElementById('ruler-padding-mm').value = rulerPaddingMm;
+                rulersData = settings.rulersData || [];
+                // Đảm bảo field flipNumbers tồn tại cho data cũ
+                rulersData.forEach(r => { if (r.flipNumbers === undefined) r.flipNumbers = false; });
+                
+                if (settings.printer) {
+                    let found = false;
+                    for (let i = 0; i < printerSelect.options.length; i++) {
+                        if (printerSelect.options[i].value === settings.printer) { found = true; break; }
+                    }
+                    if (!found && settings.printer !== '+ add_new') {
+                        const opt = document.createElement("option");
+                        opt.value = settings.printer; opt.text = settings.printer;
+                        printerSelect.add(opt, printerSelect.options[printerSelect.options.length - 1]);
+                    }
+                    printerSelect.value = settings.printer;
+                }
+            }
+            
+            const savedNote = localStorage.getItem('rulerNotes');
+            if (savedNote) noteArea.value = savedNote;
+
+            updateFieldsVisibility(); 
+            updateStartCmUIState();
+            
+            if (rulersData.length === 0) {
+                initRulersData();
+                compactRulersToCenter();
+            } else {
+                renderRulerListUI();
+                updateRulers();
+            }
+            renderPrintHistory();
+        }
+
+        function resetSettings() {
+            rulerCountInput.value = 1; scaleInput.value = 100.00; thicknessInput.value = 0.15;
+            rulerTypeInput.value = 'eke60'; rotateDegInput.value = 0;
+            boxHeightInput.value = 20;
+            rulerStyleInput.value = 'fine';
+            dualEdgeInput.checked = false;
+            customTextInput.value = 'chần';
+            printerSelect.selectedIndex = 0;
+            isChainMode = false;
+            chainModeInput.checked = false;
+            currentGapMm = 10;
+            gapMmInput.value = 10;
+            isAutoTilt = false;
+            autoTiltModeInput.checked = false;
+            textOffsetMm = 0;
+            document.getElementById('text-offset-mm').value = 0;
+            tickScalePct = 40;
+            document.getElementById('tick-scale-pct').value = 40;
+            dualEdgeText = false;
+            dualEdgeTextInput.checked = false;
+            rulerPaddingMm = 3;
+            document.getElementById('ruler-padding-mm').value = 3;
+            rulersData = [];
+            selectedRulerIndex = -1;
+            localStorage.removeItem('rulerSettingsSystemV10');
+            statusText.innerText = '🔄 Đã đặt cấu hình về trạng thái mặc định ban đầu!';
+            updateFieldsVisibility();
+            updateStartCmUIState();
+            initRulersData();
+            compactRulersToCenter();
+        }
+
+        function autoSaveNote() {
+            localStorage.setItem('rulerNotes', noteArea.value);
+        }
+
+        function triggerPrintWithHistory() {
+            const printerName = printerSelect.value;
+            if (printerName === '+ add_new') return;
+
+            const typeText = rulerTypeInput.options[rulerTypeInput.selectedIndex].text;
+            const count = rulersData.length;
+            const scalePercent = scaleInput.value + "%";
+            
+            const now = new Date();
+            const timeStr = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth()+1).toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            const newLog = {
+                time: timeStr,
+                spec: `${typeText}${isChainMode ? ' (Nối tiếp)' : ''}`,
+                count: count,
+                scale: scalePercent,
+                printer: printerName
+            };
+
+            let historyList = JSON.parse(localStorage.getItem('rulerPrintHistory')) || [];
+            historyList.unshift(newLog);
+            if (historyList.length > 50) historyList.pop();
+
+            localStorage.setItem('rulerPrintHistory', JSON.stringify(historyList));
+            renderPrintHistory();
+            window.print();
+        }
+
+        function renderPrintHistory() {
+            const historyList = JSON.parse(localStorage.getItem('rulerPrintHistory')) || [];
+            if (historyList.length === 0) {
+                historyLogBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#999; padding: 15px;">Chưa có lịch sử.</td></tr>`;
+                return;
+            }
+            let html = '';
+            historyList.forEach(log => {
+                html += `<tr>
+                    <td style="color:#666;">${log.time}</td>
+                    <td><strong>${log.spec}</strong></td>
+                    <td>${log.count}</td>
+                    <td style="color:#b78103; font-weight:bold;">${log.scale}</td>
+                    <td style="color:#2196F3;">${log.printer}</td>
+                </tr>`;
+            });
+            historyLogBody.innerHTML = html;
+        }
+
+        function clearPrintHistory() {
+            if (confirm("Bạn có chắc chắn muốn xoá lịch sử in ấn?")) {
+                localStorage.removeItem('rulerPrintHistory');
+                renderPrintHistory();
+            }
+        }
+
+        function toggleMoveMode() {
+            moveMode = !moveMode;
+            const btn = document.getElementById('btn-move-toggle');
+            if (moveMode) {
+                btn.style.background = "#E91E63";
+            } else {
+                btn.style.background = "#9C27B0";
+                statusText.innerText = `✨ Đang hiển thị độc lập ${rulersData.length} mẫu thước.`;
+            }
+            updateRulers();
+        }
+
+        function resetRulerPosition() {
+            rulersData.forEach(r => { r.rotateDeg = 0; });
+            compactRulersToCenter();
+            statusText.innerText = '↩ Đã khôi phục toàn bộ thước về góc 0° phẳng và xếp gọn giữa tâm!';
+            syncInputsFromSelected();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+
+            // Scale print-area vừa wrapper, giữ tỉ lệ A4
+            function fitPrintArea() {
+                requestAnimationFrame(() => {
+                    const wrapper = document.getElementById('print-area-wrapper');
+                    const area = document.getElementById('print-area');
+                    if (!wrapper || !area) return;
+                    const a4W = 297 / 25.4 * 96;
+                    const a4H = 210 / 25.4 * 96;
+                    const wRect = wrapper.getBoundingClientRect();
+                    const availW = Math.max(wRect.width - 4, 100);
+                    const controlH = document.getElementById('control-panel').offsetHeight || 0;
+                    const availH = Math.max(window.innerHeight - controlH - 50, 150);
+                    const s = Math.min(availW / a4W, availH / a4H, 1);
+                    area.style.transform = `scale(${s})`;
+                    area.style.transformOrigin = 'top center';
+                    wrapper.style.height = (a4H * s + 10) + 'px';
+                });
+            }
+
+            fitPrintArea();
+            window.addEventListener('resize', fitPrintArea);
+            // Gọi thêm lần nữa sau khi loadSettings render xong
+            setTimeout(fitPrintArea, 100);
+            const svg = document.getElementById('ruler-svg');
+
+            svg.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                // Force reset right-drag state vì contextmenu chặn mouseup trên một số browser
+                draggingRight = false;
+                rulersData.forEach(r => delete r._initDeg);
+            });
+
+            svg.addEventListener('mousedown', (e) => {
+                if (!moveMode) return;
+                e.preventDefault();
+
+                const rect = svg.getBoundingClientRect();
+                // tỉ lệ pixel màn hình → đơn vị viewBox
+                const svgScaleX = pageW / rect.width;
+                const svgScaleY = pageH / rect.height;
+
+                const mouseXInSVG = (e.clientX - rect.left) * svgScaleX;
+                const mouseYInSVG = (e.clientY - rect.top) * svgScaleY;
+
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+
+                if (e.button === 0) {
+                    draggingLeft = true;
+                } else if (e.button === 2) {
+                    draggingRight = true;
+
+                    rotateCenter = getRulerCenterSVGCoords(selectedRulerIndex);
+                    initialAngle = Math.atan2(mouseYInSVG - rotateCenter.y, mouseXInSVG - rotateCenter.x) * (180 / Math.PI);
+
+                    // Lưu góc ban đầu tại thời điểm mousedown
+                    if (selectedRulerIndex === -1) {
+                        rulersData.forEach(r => { r._initDeg = r.rotateDeg; });
+                    } else {
+                        rulersData[selectedRulerIndex]._initDeg = rulersData[selectedRulerIndex].rotateDeg;
+                    }
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                draggingLeft = false;
+                draggingRight = false;
+                rulersData.forEach(r => delete r._initDeg);
+            });
+
+            // Reset drag state khi cửa sổ mất focus (tránh kẹt drag)
+            window.addEventListener('blur', () => {
+                draggingLeft = false;
+                draggingRight = false;
+                rulersData.forEach(r => delete r._initDeg);
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    draggingLeft = false;
+                    draggingRight = false;
+                    rulersData.forEach(r => delete r._initDeg);
+                }
+            });
+
+            // Nhấn Escape để thoát moveMode
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && moveMode) {
+                    moveMode = false;
+                    draggingLeft = false;
+                    draggingRight = false;
+                    rulersData.forEach(r => delete r._initDeg);
+                    document.getElementById('btn-move-toggle').style.background = '#9C27B0';
+                    statusText.innerText = '✨ Đã thoát chế độ dời/xoay.';
+                    updateRulers();
+                }
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!moveMode) return;
+
+                const rect = svg.getBoundingClientRect();
+                const svgScaleX = pageW / rect.width;
+                const svgScaleY = pageH / rect.height;
+                const printerFactor = (parseFloat(scaleInput.value) || 100) / 100;
+
+                if (draggingLeft) {
+                    const dx = e.clientX - dragStartX;
+                    const dy = e.clientY - dragStartY;
+                    dragStartX = e.clientX;
+                    dragStartY = e.clientY;
+
+                    // delta pixel → delta viewBox → chia printerFactor vì offset lưu trước scale
+                    const moveStepX = (dx * svgScaleX) / printerFactor;
+                    const moveStepY = (dy * svgScaleY) / printerFactor;
+
+                    if (selectedRulerIndex === -1) {
+                        rulersData.forEach(r => { r.offsetX += moveStepX; r.offsetY += moveStepY; });
+                    } else {
+                        rulersData[selectedRulerIndex].offsetX += moveStepX;
+                        rulersData[selectedRulerIndex].offsetY += moveStepY;
+                    }
+                    updateRulers();
+                }
+
+                if (draggingRight) {
+                    const mouseXInSVG = (e.clientX - rect.left) * svgScaleX;
+                    const mouseYInSVG = (e.clientY - rect.top) * svgScaleY;
+
+                    const currentAngle = Math.atan2(mouseYInSVG - rotateCenter.y, mouseXInSVG - rotateCenter.x) * (180 / Math.PI);
+                    const angleDiff = currentAngle - initialAngle;
+
+                    if (selectedRulerIndex === -1) {
+                        rulersData.forEach(r => {
+                            r.rotateDeg = ((r._initDeg !== undefined ? r._initDeg : 0) + angleDiff) % 360;
+                        });
+                    } else {
+                        const r = rulersData[selectedRulerIndex];
+                        r.rotateDeg = ((r._initDeg !== undefined ? r._initDeg : 0) + angleDiff) % 360;
+                    }
+
+                    syncInputsFromSelected();
+                    updateRulers();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
