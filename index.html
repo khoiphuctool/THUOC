@@ -215,7 +215,8 @@
         
         #ruler-svg { width: 100%; height: 100%; display: block; }
         #print-params {
-            display: none; position: absolute; top: 4mm; right: 4mm;
+            display: block;
+            position: absolute; top: 4mm; right: 4mm;
             font-size: 8pt; color: #555; background: rgba(255,255,255,0.9);
             padding: 2px 6px; border: 1px solid #bbb; z-index: 20;
         }
@@ -224,7 +225,8 @@
 
         @media print {
             html, body { zoom: 1; }
-            #control-panel, .side-panel { display: none !important; }
+            #control-panel, .side-panel, #zoom-controls { display: none !important; }
+            #print-params { display: block !important; }
             #main-layout { padding: 0 !important; margin: 0 !important; display: block !important; }
             body, html { background: #fff; overflow: hidden !important; }
             #print-area-wrapper { height: auto !important; }
@@ -234,13 +236,13 @@
                 transform: none !important;
                 page-break-inside: avoid; page-break-after: avoid; overflow: hidden !important;
             }
-            #print-params { display: block !important; }
             .guide-line { display: none !important; }
         }
     </style>
 </head>
 <body>
 
+    <div id="control-panel">
         <h3>📐 HỆ THỐNG TẠO THƯỚC CHUẨN ĐỐI CHIẾU 1:1 - THƯỚC CỦA CHẦN  *bản nâng cấp v3.22*</h3>
         <p class="notice-text">
             💡 LƯU Ý KHI IN: Chọn A4 Ngang | Tỷ lệ (Scale) = 100% | Lề (Margins) = None. | <b>Chuột trái để DỜI, Chuột phải để XOAY thước chuẩn tâm</b>
@@ -267,7 +269,7 @@
                         <option value="eke60">Thước Êke 30°-60°</option>
                     </select>
                 </div>
-                <div class="input-field" style="background: #fff3e0;">
+                <div class="input-field" id="field-start" style="background: #fff3e0;">
                     <label id="label-start">Số bắt đầu (cm)</label>
                     <div class="counter-controls">
                         <button class="btn-step" id="btn-start-minus" onclick="adjustParam('startCm', -1)">-</button>
@@ -385,14 +387,14 @@
                     <label>Tên cá nhân</label>
                     <input type="text" id="custom-text" placeholder="Thước của Chần" oninput="updateCurrentRulerParam('customText', this.value)" style="width: 100px; margin-top:4px; padding:3px; font-size:12px; border:1px solid #ccc; border-radius:4px; text-align:center;" value="ok chan">
                 </div>
-                <div class="input-field" style="background: #fff9c4; border: 1px solid #f9a825;">
+                <div class="input-field" id="field-flip" style="background: #fff9c4; border: 1px solid #f9a825;">
                     <label style="color:#e65100;">🔄 Lật ngược số</label>
                     <div class="counter-controls">
                         <button class="btn-step" onclick="toggleFlipNumbers()">Bật/Tắt</button>
                         <input type="checkbox" id="flip-numbers" onchange="updateCurrentRulerParam('flipNumbers', this.checked)" style="width: 16px; height: 16px;">
                     </div>
                 </div>
-                <div class="input-field" style="background: #e8f5e9; border: 1px solid #66bb6a;">
+                <div class="input-field" id="field-reverse" style="background: #e8f5e9; border: 1px solid #66bb6a;">
                     <label style="color:#2e7d32;">🔃 Đảo số</label>
                     <div class="counter-controls">
                         <button class="btn-step" onclick="toggleReverseNumbers()">Bật/Tắt</button>
@@ -485,6 +487,16 @@
                     </tbody>
                 </table>
             </div>
+            <div id="zoom-controls" style="text-align:center; margin-top:8px; user-select:none; padding:6px 0; border-top:1px solid #eee;">
+                <span style="font-size:11px; color:#666; margin-right:6px;">🔍 Thu phóng xem:</span>
+                <button onclick="manualZoom(-0.05)" style="padding:2px 10px; font-size:15px; font-weight:bold; border:1px solid #aaa; border-radius:4px; cursor:pointer; background:#f0f0f0;">−</button>
+                <input id="zoom-label" type="number" min="20" max="200" step="5" value="100"
+                    style="width:54px; text-align:center; font-size:12px; font-weight:bold; color:#333; border:1px solid #ccc; border-radius:4px; padding:2px 4px;"
+                    oninput="applyZoomFromInput(this.value)">
+                <span style="font-size:12px; color:#555;">%</span>
+                <button onclick="manualZoom(0.05)" style="padding:2px 10px; font-size:15px; font-weight:bold; border:1px solid #aaa; border-radius:4px; cursor:pointer; background:#f0f0f0;">+</button>
+                <button onclick="resetZoom()" style="padding:2px 8px; font-size:11px; border:1px solid #aaa; border-radius:4px; cursor:pointer; background:#e8eaf6; margin-left:4px; color:#3f51b5; font-weight:bold;">↺ Fit</button>
+            </div>
         </div>
     </div>
 
@@ -520,6 +532,7 @@
         let isAutoTilt = false; 
 
         let moveMode = false;
+        let manualScale = 1; // mặc định 100%
         let draggingLeft = false;
         let draggingRight = false;
         let dragStartX = 0;
@@ -823,28 +836,37 @@
         function updateFieldsVisibility() {
             const type = rulerTypeInput.value;
             const paddingLabel = document.getElementById('label-padding');
-            if (type === 'long') {
-                document.getElementById('field-height').style.display = 'flex';
-                document.getElementById('field-dual').style.display = 'flex';
-                document.getElementById('field-dual-text').style.display = 'flex';
+            const isLong = type === 'long';
+            const isProtractor = type === 'protractor';
+            const isEke = type === 'eke45' || type === 'eke60';
+
+            // Vạch hai chiều & số hai chiều: chỉ thước dài
+            document.getElementById('field-dual').style.display       = isLong ? 'flex' : 'none';
+            document.getElementById('field-dual-text').style.display  = isLong ? 'flex' : 'none';
+
+            // Số bắt đầu: thước dài và eke dùng được, thước đo độ không có ý nghĩa
+            document.getElementById('field-start').style.display      = isProtractor ? 'none' : 'flex';
+
+            // Lật ngược số & Đảo số: thước dài và eke dùng được, thước đo độ không
+            document.getElementById('field-flip').style.display       = isProtractor ? 'none' : 'flex';
+            document.getElementById('field-reverse').style.display    = isProtractor ? 'none' : 'flex';
+
+            // Chiều rộng thân: thước đo độ không có
+            document.getElementById('field-height').style.display     = isProtractor ? 'none' : 'flex';
+
+            // Label chiều dài và lề
+            if (isLong) {
                 document.getElementById('label-len').innerText = "Chiều dài thước (cm)";
                 if (paddingLabel) paddingLabel.innerText = "Lề 2 đầu thước (mm)";
-            } else {
-                document.getElementById('field-dual').style.display = 'none';
-                document.getElementById('field-dual-text').style.display = 'none';
-                if (type === 'protractor') {
-                    document.getElementById('field-height').style.display = 'none';
-                    document.getElementById('label-len').innerText = "Đường kính thước (cm)";
-                    if (paddingLabel) paddingLabel.innerText = "Lề 2 đầu thước (mm)";
-                } else if (type === 'eke45') {
-                    document.getElementById('field-height').style.display = 'flex';
-                    document.getElementById('label-len').innerText = "Cạnh góc vuông (cm)";
-                    if (paddingLabel) paddingLabel.innerText = "Lề cạnh góc vuông (mm)";
-                } else if (type === 'eke60') {
-                    document.getElementById('field-height').style.display = 'flex';
-                    document.getElementById('label-len').innerText = "Cạnh vuông dài (cm)";
-                    if (paddingLabel) paddingLabel.innerText = "Lề cạnh góc vuông (mm)";
-                }
+            } else if (isProtractor) {
+                document.getElementById('label-len').innerText = "Đường kính thước (cm)";
+                if (paddingLabel) paddingLabel.innerText = "Lề 2 đầu thước (mm)";
+            } else if (type === 'eke45') {
+                document.getElementById('label-len').innerText = "Cạnh góc vuông (cm)";
+                if (paddingLabel) paddingLabel.innerText = "Lề cạnh góc vuông (mm)";
+            } else if (type === 'eke60') {
+                document.getElementById('label-len').innerText = "Cạnh vuông dài (cm)";
+                if (paddingLabel) paddingLabel.innerText = "Lề cạnh góc vuông (mm)";
             }
         }
 
@@ -1423,6 +1445,40 @@
             }
         }
 
+        function manualZoom(delta) {
+            const area = document.getElementById('print-area');
+            const wrapper = document.getElementById('print-area-wrapper');
+            const a4H = 210 / 25.4 * 96;
+            const currentTransform = area.style.transform;
+            const match = currentTransform.match(/scale\(([\d.]+)\)/);
+            let s = match ? parseFloat(match[1]) : 1;
+            s = Math.min(Math.max(Math.round((s + delta) * 100) / 100, 0.2), 2);
+            manualScale = s;
+            area.style.transform = `scale(${s})`;
+            area.style.transformOrigin = 'top center';
+            wrapper.style.height = (a4H * s + 10) + 'px';
+            document.getElementById('zoom-label').value = Math.round(s * 100);
+        }
+
+        function applyZoomFromInput(val) {
+            let pct = parseInt(val);
+            if (isNaN(pct) || pct < 20) pct = 20;
+            if (pct > 200) pct = 200;
+            const s = pct / 100;
+            manualScale = s;
+            const area = document.getElementById('print-area');
+            const wrapper = document.getElementById('print-area-wrapper');
+            const a4H = 210 / 25.4 * 96;
+            area.style.transform = `scale(${s})`;
+            area.style.transformOrigin = 'top center';
+            wrapper.style.height = (a4H * s + 10) + 'px';
+        }
+
+        function resetZoom() {
+            manualScale = null;
+            fitPrintArea();
+        }
+
         function toggleMoveMode() {
             moveMode = !moveMode;
             const btn = document.getElementById('btn-move-toggle');
@@ -1453,14 +1509,24 @@
                     if (!wrapper || !area) return;
                     const a4W = 297 / 25.4 * 96;
                     const a4H = 210 / 25.4 * 96;
+                    if (manualScale !== null) {
+                        const s = manualScale;
+                        area.style.transform = `scale(${s})`;
+                        area.style.transformOrigin = 'top center';
+                        wrapper.style.height = (a4H * s + 10) + 'px';
+                        document.getElementById('zoom-label').value = Math.round(s * 100);
+                        return;
+                    }
+                    const zoomFactor = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
                     const wRect = wrapper.getBoundingClientRect();
                     const availW = Math.max(wRect.width - 4, 100);
-                    const controlH = document.getElementById('control-panel').offsetHeight || 0;
+                    const controlH = (document.getElementById('control-panel').offsetHeight || 0) * zoomFactor;
                     const availH = Math.max(window.innerHeight - controlH - 50, 150);
                     const s = Math.min(availW / a4W, availH / a4H, 1);
                     area.style.transform = `scale(${s})`;
                     area.style.transformOrigin = 'top center';
                     wrapper.style.height = (a4H * s + 10) + 'px';
+                    document.getElementById('zoom-label').value = Math.round(s * 100);
                 });
             }
 
