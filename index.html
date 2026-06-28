@@ -243,7 +243,7 @@
 <body>
 
     <div id="control-panel">
-        <h3>📐 HỆ THỐNG TẠO THƯỚC CHUẨN ĐỐI CHIẾU 1:1 - THƯỚC CỦA CHẦN  *bản nâng cấp v3.22*</h3>
+        <h3>📐 HỆ THỐNG TẠO THƯỚC CHUẨN ĐỐI CHIẾU 1:1 - THƯỚC CỦA CHẦN  *bản nâng cấp v3.23*</h3>
         <p class="notice-text">
             💡 LƯU Ý KHI IN: Chọn A4 Ngang | Tỷ lệ (Scale) = 100% | Lề (Margins) = None. | <b>Chuột trái để DỜI, Chuột phải để XOAY thước chuẩn tâm</b>
         </p>
@@ -532,7 +532,7 @@
         let isAutoTilt = false; 
 
         let moveMode = false;
-        let manualScale = 1; // mặc định 100%
+        let manualScale = null; // null = auto-fit
         let draggingLeft = false;
         let draggingRight = false;
         let dragStartX = 0;
@@ -677,8 +677,8 @@
         function updateGapMm(value) {
             let v = parseFloat(value);
             if (isNaN(v) || v < 0) v = 0;
-            gapMmInput.value = v; 
             currentGapMm = v;
+            gapMmInput.value = v; 
             if (!moveMode) compactRulersToCenter();
             else updateRulers();
         }
@@ -1302,6 +1302,7 @@
                 tickScalePct: tickScalePct,
                 dualEdgeText: dualEdgeText,
                 rulerPaddingMm: rulerPaddingMm,
+                manualScale: manualScale,
                 rulersData: rulersData
             };
             localStorage.setItem('rulerSettingsSystemV10', JSON.stringify(settings));
@@ -1333,6 +1334,12 @@
                 dualEdgeTextInput.checked = dualEdgeText;
                 rulerPaddingMm = settings.rulerPaddingMm !== undefined ? parseFloat(settings.rulerPaddingMm) : 3;
                 document.getElementById('ruler-padding-mm').value = rulerPaddingMm;
+                // Restore zoom
+                if (settings.manualScale !== undefined && settings.manualScale !== null) {
+                    manualScale = parseFloat(settings.manualScale);
+                } else {
+                    manualScale = null;
+                }
                 rulersData = settings.rulersData || [];
                 // Đảm bảo field flipNumbers tồn tại cho data cũ
                 rulersData.forEach(r => { 
@@ -1376,12 +1383,13 @@
         }
 
         function resetSettings() {
-            rulerCountInput.value = 1; scaleInput.value = 100.00; thicknessInput.value = 0.15;
-            rulerTypeInput.value = 'eke60'; rotateDegInput.value = 0;
-            boxHeightInput.value = 20;
+            rulerCountInput.value = 2; scaleInput.value = 100.00; thicknessInput.value = 0.19;
+            rulerTypeInput.value = 'long'; rotateDegInput.value = 0;
+            boxHeightInput.value = 25;
             rulerStyleInput.value = 'fine';
-            dualEdgeInput.checked = false;
-            customTextInput.value = 'chần';
+            dualEdgeInput.checked = true;
+            dualEdgeTextInput.checked = true;
+            customTextInput.value = 'ok chan';
             printerSelect.selectedIndex = 0;
             isChainMode = false;
             chainModeInput.checked = false;
@@ -1389,22 +1397,25 @@
             gapMmInput.value = 10;
             isAutoTilt = false;
             autoTiltModeInput.checked = false;
-            textOffsetMm = 0;
-            document.getElementById('text-offset-mm').value = 0;
-            tickScalePct = 40;
-            document.getElementById('tick-scale-pct').value = 40;
-            dualEdgeText = false;
-            dualEdgeTextInput.checked = false;
-            rulerPaddingMm = 3;
-            document.getElementById('ruler-padding-mm').value = 3;
+            textOffsetMm = 0.8;
+            document.getElementById('text-offset-mm').value = 0.8;
+            tickScalePct = 25;
+            document.getElementById('tick-scale-pct').value = 25;
+            dualEdgeText = true;
+            rulerPaddingMm = 2;
+            document.getElementById('ruler-padding-mm').value = 2;
+            startValInput.value = 0;
+            maxLenInput.value = 25;
             rulersData = [];
             selectedRulerIndex = -1;
+            manualScale = null;
             localStorage.removeItem('rulerSettingsSystemV10');
             statusText.innerText = '🔄 Đã đặt cấu hình về trạng thái mặc định ban đầu!';
             updateFieldsVisibility();
             updateStartCmUIState();
             initRulersData();
             compactRulersToCenter();
+            fitPrintArea();
         }
 
         function autoSaveNote() {
@@ -1469,9 +1480,7 @@
             const area = document.getElementById('print-area');
             const wrapper = document.getElementById('print-area-wrapper');
             const a4H = 210 / 25.4 * 96;
-            const currentTransform = area.style.transform;
-            const match = currentTransform.match(/scale\(([\d.]+)\)/);
-            let s = match ? parseFloat(match[1]) : 1;
+            let s = manualScale !== null ? manualScale : parseFloat(area.style.transform.match(/scale\(([\d.]+)\)/)?.[1] || 1);
             s = Math.min(Math.max(Math.round((s + delta) * 100) / 100, 0.2), 2);
             manualScale = s;
             area.style.transform = `scale(${s})`;
@@ -1518,37 +1527,37 @@
             syncInputsFromSelected();
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            loadSettings();
-
-            // Scale print-area vừa wrapper, giữ tỉ lệ A4
-            function fitPrintArea() {
-                requestAnimationFrame(() => {
-                    const wrapper = document.getElementById('print-area-wrapper');
-                    const area = document.getElementById('print-area');
-                    if (!wrapper || !area) return;
-                    const a4W = 297 / 25.4 * 96;
-                    const a4H = 210 / 25.4 * 96;
-                    if (manualScale !== null) {
-                        const s = manualScale;
-                        area.style.transform = `scale(${s})`;
-                        area.style.transformOrigin = 'top center';
-                        wrapper.style.height = (a4H * s + 10) + 'px';
-                        document.getElementById('zoom-label').value = Math.round(s * 100);
-                        return;
-                    }
-                    const zoomFactor = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
-                    const wRect = wrapper.getBoundingClientRect();
-                    const availW = Math.max(wRect.width - 4, 100);
-                    const controlH = (document.getElementById('control-panel').offsetHeight || 0) * zoomFactor;
-                    const availH = Math.max(window.innerHeight - controlH - 50, 150);
-                    const s = Math.min(availW / a4W, availH / a4H, 1);
+        // Scale print-area vừa wrapper, giữ tỉ lệ A4 — ở scope ngoài để resetZoom gọi được
+        function fitPrintArea() {
+            requestAnimationFrame(() => {
+                const wrapper = document.getElementById('print-area-wrapper');
+                const area = document.getElementById('print-area');
+                if (!wrapper || !area) return;
+                const a4W = 297 / 25.4 * 96;
+                const a4H = 210 / 25.4 * 96;
+                if (manualScale !== null) {
+                    const s = manualScale;
                     area.style.transform = `scale(${s})`;
                     area.style.transformOrigin = 'top center';
                     wrapper.style.height = (a4H * s + 10) + 'px';
                     document.getElementById('zoom-label').value = Math.round(s * 100);
-                });
-            }
+                    return;
+                }
+                const zoomFactor = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+                const wRect = wrapper.getBoundingClientRect();
+                const availW = Math.max(wRect.width - 4, 100);
+                const controlH = (document.getElementById('control-panel').offsetHeight || 0) * zoomFactor;
+                const availH = Math.max(window.innerHeight - controlH - 50, 150);
+                const s = Math.min(availW / a4W, availH / a4H, 1);
+                area.style.transform = `scale(${s})`;
+                area.style.transformOrigin = 'top center';
+                wrapper.style.height = (a4H * s + 10) + 'px';
+                document.getElementById('zoom-label').value = Math.round(s * 100);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
 
             fitPrintArea();
             window.addEventListener('resize', fitPrintArea);
@@ -1564,7 +1573,7 @@
             });
 
             svg.addEventListener('mousedown', (e) => {
-                if (!moveMode) return;
+                if (!moveMode && e.button !== 2) return;
                 e.preventDefault();
 
                 const rect = svg.getBoundingClientRect();
@@ -1630,7 +1639,7 @@
             });
 
             document.addEventListener('mousemove', (e) => {
-                if (!moveMode) return;
+                if (!moveMode && !draggingRight) return;
 
                 const rect = svg.getBoundingClientRect();
                 const svgScaleX = pageW / rect.width;
