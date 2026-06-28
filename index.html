@@ -1168,7 +1168,18 @@
                 }
             }
             if (r.customText) {
-                html += `<text x="${t + side/4}" y="${yV - t - side/4}" font-family="Arial" font-size="4.5" text-anchor="start" fill="${sParams.color}" opacity="0.6">${r.customText}</text>`;
+                // Đặt chữ dọc cạnh huyền tam giác lớn: từ xB,yB đến xA,yA
+                // Tâm cạnh huyền
+                const hypMidX = (xB + xA) / 2;
+                const hypMidY = (yB + yA) / 2;
+                // Góc cạnh huyền (từ B đến A): atan2(yA-yB, xA-xB)
+                const hypAngle = Math.atan2(yA - yB, xA - xB) * 180 / Math.PI;
+                // Dịch vào trong thước theo pháp tuyến (vuông góc cạnh huyền, hướng về góc vuông xV,yV)
+                const normAngleRad = Math.atan2(yA - yB, xA - xB) + Math.PI / 2;
+                const insetDist = t * 0.6;
+                const textX = hypMidX + Math.cos(normAngleRad) * insetDist;
+                const textY = hypMidY + Math.sin(normAngleRad) * insetDist;
+                html += `<text x="${textX}" y="${textY}" font-family="Arial" font-size="${Math.min(t * 0.5, 6)}" text-anchor="middle" dominant-baseline="middle" fill="${sParams.color}" opacity="0.6" transform="rotate(${hypAngle}, ${textX}, ${textY})">${r.customText}</text>`;
             }
             return html;
         }
@@ -1227,7 +1238,16 @@
                 }
             }
             if (r.customText) {
-                html += `<text x="${t + sideShort/4}" y="${yV - t - sideLong/4}" font-family="Arial" font-size="4.5" text-anchor="start" fill="${sParams.color}" opacity="0.6">${r.customText}</text>`;
+                // Đặt chữ dọc cạnh huyền tam giác lớn: từ xB,yB đến xA,yA
+                const hypMidX = (xB + xA) / 2;
+                const hypMidY = (yB + yA) / 2;
+                const hypAngle = Math.atan2(yA - yB, xA - xB) * 180 / Math.PI;
+                // Pháp tuyến hướng vào trong (về phía góc vuông xV,yV)
+                const normAngleRad = Math.atan2(yA - yB, xA - xB) + Math.PI / 2;
+                const insetDist = t * 0.6;
+                const textX = hypMidX + Math.cos(normAngleRad) * insetDist;
+                const textY = hypMidY + Math.sin(normAngleRad) * insetDist;
+                html += `<text x="${textX}" y="${textY}" font-family="Arial" font-size="${Math.min(t * 0.5, 6)}" text-anchor="middle" dominant-baseline="middle" fill="${sParams.color}" opacity="0.6" transform="rotate(${hypAngle}, ${textX}, ${textY})">${r.customText}</text>`;
             }
             return html;
         }
