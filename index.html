@@ -18,11 +18,12 @@
             print-color-adjust: exact;
             background: #f4f6f9;
             overflow-x: hidden;
+            zoom: 0.9;
         }
         
         #control-panel {
             background: #fff;
-            padding: 15px;
+            padding: 6px 15px;
             border-bottom: 3px solid #3f51b5;
             box-shadow: 0 3px 10px rgba(0,0,0,0.1);
             position: relative;
@@ -35,37 +36,37 @@
             text-align: center;
         }
         .notice-text {
-            margin: 0 0 12px 0; 
+            margin: 0 0 6px 0; 
             color: #d32f2f; 
             font-weight: bold; 
-            font-size: 13px;
+            font-size: 11px;
             text-align: center;
         }
 
         .panel-sections {
             display: flex;
             justify-content: center;
-            gap: 15px;
+            gap: 8px;
             flex-wrap: wrap;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
         .section-group {
             border: 1px solid #c5cae9;
             border-radius: 8px;
-            padding: 10px;
+            padding: 6px 8px;
             background: #fcfcfd;
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
             flex-wrap: wrap;
         }
         .section-title {
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
             color: #3f51b5;
             font-weight: bold;
             width: 100%;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             border-bottom: 1px dashed #c5cae9;
             padding-bottom: 2px;
         }
@@ -76,22 +77,22 @@
             align-items: center;
             font-weight: bold;
             background: #fff;
-            padding: 4px 8px;
+            padding: 3px 6px;
             border: 1px solid #e0e0e0;
             border-radius: 6px;
-            font-size: 12px;
+            font-size: 11px;
         }
         .counter-controls {
             display: flex;
             align-items: center;
-            margin-top: 4px;
-            gap: 4px;
+            margin-top: 3px;
+            gap: 3px;
         }
         .counter-controls input, .counter-controls select {
-            width: 80px;
-            padding: 4px;
+            width: 70px;
+            padding: 3px;
             text-align: center;
-            font-size: 13px;
+            font-size: 12px;
             border: 1px solid #ccc;
             border-radius: 4px;
         }
@@ -222,6 +223,7 @@
         .move-mode { cursor: move; outline: 2px dashed #e91e63; }
 
         @media print {
+            html, body { zoom: 1; }
             #control-panel, .side-panel { display: none !important; }
             #main-layout { padding: 0 !important; margin: 0 !important; display: block !important; }
             body, html { background: #fff; overflow: hidden !important; }
@@ -239,7 +241,6 @@
 </head>
 <body>
 
-    <div id="control-panel">
         <h3>📐 HỆ THỐNG TẠO THƯỚC CHUẨN ĐỐI CHIẾU 1:1 - THƯỚC CỦA CHẦN</h3>
         <p class="notice-text">
             💡 LƯU Ý KHI IN: Chọn A4 Ngang | Tỷ lệ (Scale) = 100% | Lề (Margins) = None. | <b>Chuột trái để DỜI, Chuột phải để XOAY thước chuẩn tâm</b>
