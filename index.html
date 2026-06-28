@@ -241,7 +241,7 @@
 </head>
 <body>
 
-        <h3>📐 HỆ THỐNG TẠO THƯỚC CHUẨN ĐỐI CHIẾU 1:1 - THƯỚC CỦA CHẦN</h3>
+        <h3>📐 HỆ THỐNG TẠO THƯỚC CHUẨN ĐỐI CHIẾU 1:1 - THƯỚC CỦA CHẦN  *bản nâng cấp v3.22*</h3>
         <p class="notice-text">
             💡 LƯU Ý KHI IN: Chọn A4 Ngang | Tỷ lệ (Scale) = 100% | Lề (Margins) = None. | <b>Chuột trái để DỜI, Chuột phải để XOAY thước chuẩn tâm</b>
         </p>
@@ -392,6 +392,13 @@
                         <input type="checkbox" id="flip-numbers" onchange="updateCurrentRulerParam('flipNumbers', this.checked)" style="width: 16px; height: 16px;">
                     </div>
                 </div>
+                <div class="input-field" style="background: #e8f5e9; border: 1px solid #66bb6a;">
+                    <label style="color:#2e7d32;">🔃 Đảo số</label>
+                    <div class="counter-controls">
+                        <button class="btn-step" onclick="toggleReverseNumbers()">Bật/Tắt</button>
+                        <input type="checkbox" id="reverse-numbers" onchange="updateCurrentRulerParam('reverseNumbers', this.checked)" style="width: 16px; height: 16px;">
+                    </div>
+                </div>
             </div>
 
             <!-- NHÓM 4: Cấu hình in -->
@@ -504,6 +511,7 @@
         const gapMmInput = document.getElementById('gap-mm-input');
         const autoTiltModeInput = document.getElementById('auto-tilt-mode');
         const flipNumbersInput = document.getElementById('flip-numbers');
+        const reverseNumbersInput = document.getElementById('reverse-numbers');
 
         let rulersData = []; 
         let selectedRulerIndex = -1; 
@@ -543,6 +551,7 @@
                     dualEdge: dualEdgeInput.checked,
                     customText: customTextInput.value || '',
                     flipNumbers: flipNumbersInput.checked,
+                    reverseNumbers: reverseNumbersInput.checked,
                     offsetX: 0, 
                     offsetY: 0
                 });
@@ -561,6 +570,7 @@
                     dualEdge: templateRuler.dualEdge,
                     customText: templateRuler.customText,
                     flipNumbers: templateRuler.flipNumbers || false,
+                    reverseNumbers: templateRuler.reverseNumbers || false,
                     offsetX: templateRuler.offsetX, 
                     offsetY: templateRuler.offsetY + (newIdx * (templateRuler.boxHeightMm + currentGapMm)) 
                 });
@@ -689,6 +699,7 @@
             dualEdgeInput.checked = target.dualEdge;
             customTextInput.value = target.customText;
             flipNumbersInput.checked = target.flipNumbers || false;
+            reverseNumbersInput.checked = target.reverseNumbers || false;
         }
 
         function updateCurrentRulerParam(key, value) {
@@ -792,6 +803,11 @@
         function toggleFlipNumbers() {
             flipNumbersInput.checked = !flipNumbersInput.checked;
             updateCurrentRulerParam('flipNumbers', flipNumbersInput.checked);
+        }
+
+        function toggleReverseNumbers() {
+            reverseNumbersInput.checked = !reverseNumbersInput.checked;
+            updateCurrentRulerParam('reverseNumbers', reverseNumbersInput.checked);
         }
 
         function toggleDualEdgeText() {
@@ -999,6 +1015,7 @@
             const paddingEachSide = rulerPaddingMm;
             const totalBoxWidthMm = totalMm + (paddingEachSide * 2);
             const flip = r.flipNumbers || false;
+            const rev  = r.reverseNumbers || false;
 
             let html = '';
             html += `<rect x="0" y="0" width="${totalBoxWidthMm}" height="${r.boxHeightMm}" fill="${sParams.bg}" stroke="${sParams.color}" stroke-width="${sParams.stroke}" />`;
@@ -1012,22 +1029,25 @@
                 let len = isMain ? tickCmLen : (isHalf ? tickCmLen * 0.65 : tickCmLen * 0.4);
                 let strokeDash = sParams.dash === 'dashed' ? (isMain ? 'stroke-dasharray="2,1"' : 'stroke-dasharray="0.5,0.5"') : '';
 
-                // Vạch cạnh DƯỚI — số giảm từ maxCm về 0
+                // Cạnh DƯỚI: mặc định giảm từ maxCm→0, khi đảo tăng từ 0→maxCm
                 html += `<line x1="${xT}" y1="${r.boxHeightMm}" x2="${xT}" y2="${r.boxHeightMm - len}" stroke="${sParams.color}" stroke-width="${lineThickness}" ${strokeDash} />`;
                 if (isMain) {
-                    let textNum = r.startCm + r.maxCm - (i / 10);
+                    let textNum = rev
+                        ? r.startCm + (i / 10)
+                        : r.startCm + r.maxCm - (i / 10);
                     const yBot = r.boxHeightMm - len - textOffsetMm;
                     const textTransform = flip ? ` transform="rotate(180,${xT},${yBot - 2.1})"` : '';
                     html += `<text x="${xT}" y="${yBot}" font-family="Arial" font-size="4.2" font-weight="bold" text-anchor="middle" dominant-baseline="auto" fill="${sParams.color}"${textTransform}>${textNum}</text>`;
                 }
 
                 if (r.dualEdge) {
-                    // Vạch cạnh TRÊN — số từ 0 tăng dần, lật 180°
+                    // Cạnh TRÊN: mặc định tăng từ 0→maxCm, khi đảo giảm từ maxCm→0
                     html += `<line x1="${xT}" y1="0" x2="${xT}" y2="${len}" stroke="${sParams.color}" stroke-width="${lineThickness}" ${strokeDash} />`;
                     if (isMain && dualEdgeText) {
-                        let textNum = r.startCm + (i / 10);
+                        let textNum = rev
+                            ? r.startCm + r.maxCm - (i / 10)
+                            : r.startCm + (i / 10);
                         const tyCenter = len + textOffsetMm + 2.1;
-                        // Cạnh trên luôn rotate 180 để đọc từ trên xuống; flip thêm thì xoay thêm 180 = về 0
                         const rot = flip ? `` : `rotate(180,${xT},${tyCenter})`;
                         const rotAttr = rot ? ` transform="${rot}"` : '';
                         html += `<text x="${xT}" y="${tyCenter}" font-family="Arial" font-size="4.2" font-weight="bold" text-anchor="middle" dominant-baseline="middle" fill="${sParams.color}"${rotAttr}>${textNum}</text>`;
@@ -1273,7 +1293,10 @@
                 document.getElementById('ruler-padding-mm').value = rulerPaddingMm;
                 rulersData = settings.rulersData || [];
                 // Đảm bảo field flipNumbers tồn tại cho data cũ
-                rulersData.forEach(r => { if (r.flipNumbers === undefined) r.flipNumbers = false; });
+                rulersData.forEach(r => { 
+                    if (r.flipNumbers === undefined) r.flipNumbers = false; 
+                    if (r.reverseNumbers === undefined) r.reverseNumbers = false;
+                });
                 
                 if (settings.printer) {
                     let found = false;
