@@ -519,10 +519,11 @@
         let rotateCenter = { x: 0, y: 0 };
 
         // Tham số global (áp dụng cho tất cả thước)
-        let textOffsetMm = 0;     // khoảng cách số cách đầu vạch (mm)
-        let tickScalePct = 40;    // % chiều cao thân thước cho vạch cm dài nhất
-        let dualEdgeText = false; // bật/tắt số ở cạnh trên khi dualEdge
-        let rulerPaddingMm = 3;   // khoảng cách từ mép thước đến vạch đầu/cuối (mm)
+        // Giá trị khởi tạo khớp với giá trị mặc định của các input trong HTML
+        let textOffsetMm = 0.8;   // khoảng cách số cách đầu vạch (mm)
+        let tickScalePct = 25;    // % chiều cao thân thước cho vạch cm dài nhất
+        let dualEdgeText = true;  // bật/tắt số ở cạnh trên khi dualEdge
+        let rulerPaddingMm = 2;   // khoảng cách từ mép thước đến vạch đầu/cuối (mm)
 
         const pageW = 297; 
         const pageH = 210;
@@ -1294,6 +1295,11 @@
             updateStartCmUIState();
             
             if (rulersData.length === 0) {
+                // Lần đầu mở, đồng bộ biến global từ giá trị mặc định trong HTML
+                textOffsetMm = parseFloat(document.getElementById('text-offset-mm').value) || 0.8;
+                tickScalePct = parseInt(document.getElementById('tick-scale-pct').value) || 25;
+                rulerPaddingMm = parseFloat(document.getElementById('ruler-padding-mm').value) || 2;
+                dualEdgeText = dualEdgeTextInput.checked;
                 initRulersData();
                 compactRulersToCenter();
             } else {
